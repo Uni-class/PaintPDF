@@ -1,6 +1,6 @@
-import PDFViewer from "./components/PDF/PDFViewer";
+import PDFPainter from "./components/PDFPainter";
 import TestDocument from "./assets/test.pdf";
 
 export default function App() {
-	return <PDFViewer pdfDocumentURL={TestDocument} />;
+	return <PDFPainter pdfDocumentURL={TestDocument} />;
 }
