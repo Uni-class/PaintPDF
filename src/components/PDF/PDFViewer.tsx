@@ -41,6 +41,7 @@ const PDFViewer = ({
 		scale: 1,
 	});
 	const [dragModeEnabled, setDragModeEnabled] = useState(false);
+	const dragBasePosition = useRef<[number, number] | null>(null);
 	const pdfViewerController = useRef<PDFViewerController | null>(null);
 
 	const setPdfDocument = useCallback(
@@ -200,15 +201,19 @@ const PDFViewer = ({
 			if (!dragModeEnabled) {
 				return;
 			}
-			if (event.buttons !== 1) {
-				return;
+			if (event.buttons === 1) {
+				if (dragBasePosition.current !== null) {
+					const { baseX, baseY, scale } = pdfRenderOptions;
+					setPdfRenderOptions({
+						baseX: baseX + (dragBasePosition.current[0] - event.pageX) / scale,
+						baseY: baseY + (dragBasePosition.current[1] - event.pageY) / scale,
+						scale: scale,
+					});
+				}
+				dragBasePosition.current = [event.pageX, event.pageY];
+			} else {
+				dragBasePosition.current = null;
 			}
-			const { baseX, baseY, scale } = pdfRenderOptions;
-			setPdfRenderOptions({
-				baseX: baseX - event.movementX / scale,
-				baseY: baseY - event.movementY / scale,
-				scale: scale,
-			});
 		},
 		[dragModeEnabled, pdfRenderOptions, setPdfRenderOptions],
 	);
