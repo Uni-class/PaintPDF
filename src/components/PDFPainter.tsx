@@ -14,6 +14,7 @@ const PDFPainter = ({
 	onPdfPageChange = () => {},
 	onPdfPageIndexChange = () => {},
 	onPdfRenderOptionsChange = () => {},
+	onDragModeChange = () => {},
 }: {
 	pdfDocumentURL: string;
 	onPdfViewerLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
@@ -21,6 +22,7 @@ const PDFPainter = ({
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 	onPdfPageIndexChange?: (pdfPageIndex: number) => void;
 	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
+	onDragModeChange?: (dragModeEnabled: boolean) => void;
 }) => {
 	const [editorSize, setEditorSize] = useState<[number, number]>([0, 0]);
 	const [editor, setEditor] = useState<Editor | null>(null);
@@ -123,6 +125,13 @@ const PDFPainter = ({
 		[editor, onPdfRenderOptionsChange],
 	);
 
+	const pdfDragModeChangeHandler = useCallback(
+		(dragModeEnabled: boolean) => {
+			onDragModeChange(dragModeEnabled);
+		},
+		[onDragModeChange],
+	);
+
 	const editorLoadHandler = useCallback(
 		(editor: Editor) => {
 			setEditor(editor);
@@ -154,6 +163,7 @@ const PDFPainter = ({
 					onPdfPageChange={pdfPageChangeHandler}
 					onPdfPageIndexChange={pdfPageIndexChangeHandler}
 					onPdfRenderOptionsChange={pdfRenderOptionsChangeHandler}
+					onDragModeChange={pdfDragModeChangeHandler}
 				/>
 				<div
 					style={{

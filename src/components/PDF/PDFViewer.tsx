@@ -12,6 +12,8 @@ export type PDFViewerController = {
 	moveToNextPage: () => void;
 	getPdfPageCount: () => number;
 	getPdfRenderOptions: () => PDFRenderOptions;
+	isDragModeEnabled: () => boolean;
+	setDragModeEnabled: (enabled: boolean) => void;
 };
 
 const PDFViewer = ({
@@ -21,6 +23,7 @@ const PDFViewer = ({
 	onPdfPageChange = () => {},
 	onPdfPageIndexChange = () => {},
 	onPdfRenderOptionsChange = () => {},
+	onDragModeChange = () => {},
 }: {
 	pdfDocumentURL: string;
 	onLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
@@ -28,6 +31,7 @@ const PDFViewer = ({
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 	onPdfPageIndexChange?: (pdfPageIndex: number) => void;
 	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
+	onDragModeChange?: (dragModeEnabled: boolean) => void;
 }) => {
 	const pdfRendererElement = useRef<HTMLDivElement>(null);
 	const [pdfDocument, setPdfDocumentState] = useState<PDFDocument | null>(null);
@@ -40,7 +44,7 @@ const PDFViewer = ({
 		baseY: 0,
 		scale: 1,
 	});
-	const [dragModeEnabled, setDragModeEnabled] = useState(false);
+	const [dragModeEnabled, setDragModeEnabledState] = useState(false);
 	const dragBasePosition = useRef<[number, number] | null>(null);
 	const pdfViewerController = useRef<PDFViewerController | null>(null);
 
@@ -94,6 +98,14 @@ const PDFViewer = ({
 		[pdfPage, onPdfRenderOptionsChange],
 	);
 
+	const setDragModeEnabled = useCallback(
+		(dragModeEnabled: boolean) => {
+			setDragModeEnabledState(dragModeEnabled);
+			onDragModeChange(dragModeEnabled);
+		},
+		[onDragModeChange],
+	);
+
 	const moveToPreviousPage = useCallback(() => {
 		if (pdfDocument === null) {
 			return;
@@ -134,8 +146,14 @@ const PDFViewer = ({
 			getPdfRenderOptions: () => {
 				return pdfRenderOptions;
 			},
+			isDragModeEnabled: () => {
+				return dragModeEnabled;
+			},
+			setDragModeEnabled: (enabled: boolean) => {
+				setDragModeEnabled(enabled);
+			},
 		};
-	}, [pdfDocument, pdfPage, pdfPageIndex, pdfRenderOptions, setPdfPageIndex, moveToPreviousPage, moveToNextPage]);
+	}, [pdfDocument, pdfPage, pdfPageIndex, pdfRenderOptions, dragModeEnabled, setPdfPageIndex, moveToPreviousPage, moveToNextPage]);
 
 	useEffect(() => {
 		onLoad(pdfViewerController as MutableRefObject<PDFViewerController>);
