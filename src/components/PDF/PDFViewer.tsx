@@ -12,8 +12,8 @@ export type PDFViewerController = {
 	moveToNextPage: () => void;
 	getPdfPageCount: () => number;
 	getPdfRenderOptions: () => PDFRenderOptions;
-	isDragModeEnabled: () => boolean;
-	setDragModeEnabled: (enabled: boolean) => void;
+	isPdfDragModeEnabled: () => boolean;
+	setPdfDragModeEnabled: (pdfDragModeEnabled: boolean) => void;
 };
 
 const PDFViewer = ({
@@ -23,7 +23,7 @@ const PDFViewer = ({
 	onPdfPageChange = () => {},
 	onPdfPageIndexChange = () => {},
 	onPdfRenderOptionsChange = () => {},
-	onDragModeChange = () => {},
+	onPdfDragModeChange = () => {},
 }: {
 	pdfDocumentURL: string;
 	onLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
@@ -31,7 +31,7 @@ const PDFViewer = ({
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 	onPdfPageIndexChange?: (pdfPageIndex: number) => void;
 	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
-	onDragModeChange?: (dragModeEnabled: boolean) => void;
+	onPdfDragModeChange?: (pdfDragModeEnabled: boolean) => void;
 }) => {
 	const pdfRendererElement = useRef<HTMLDivElement>(null);
 	const [pdfDocument, setPdfDocumentState] = useState<PDFDocument | null>(null);
@@ -44,8 +44,8 @@ const PDFViewer = ({
 		baseY: 0,
 		scale: 1,
 	});
-	const [dragModeEnabled, setDragModeEnabledState] = useState(false);
-	const dragBasePosition = useRef<[number, number] | null>(null);
+	const [pdfDragModeEnabled, setPdfDragModeEnabledState] = useState(false);
+	const pdfDragBasePosition = useRef<[number, number] | null>(null);
 	const pdfViewerController = useRef<PDFViewerController | null>(null);
 
 	const setPdfDocument = useCallback(
@@ -98,12 +98,12 @@ const PDFViewer = ({
 		[pdfPage, onPdfRenderOptionsChange],
 	);
 
-	const setDragModeEnabled = useCallback(
-		(dragModeEnabled: boolean) => {
-			setDragModeEnabledState(dragModeEnabled);
-			onDragModeChange(dragModeEnabled);
+	const setPdfDragModeEnabled = useCallback(
+		(pdfDragModeEnabled: boolean) => {
+			setPdfDragModeEnabledState(pdfDragModeEnabled);
+			onPdfDragModeChange(pdfDragModeEnabled);
 		},
-		[onDragModeChange],
+		[onPdfDragModeChange],
 	);
 
 	const moveToPreviousPage = useCallback(() => {
@@ -146,14 +146,14 @@ const PDFViewer = ({
 			getPdfRenderOptions: () => {
 				return pdfRenderOptions;
 			},
-			isDragModeEnabled: () => {
-				return dragModeEnabled;
+			isPdfDragModeEnabled: () => {
+				return pdfDragModeEnabled;
 			},
-			setDragModeEnabled: (enabled: boolean) => {
-				setDragModeEnabled(enabled);
+			setPdfDragModeEnabled: (enabled: boolean) => {
+				setPdfDragModeEnabled(enabled);
 			},
 		};
-	}, [pdfDocument, pdfPage, pdfPageIndex, pdfRenderOptions, dragModeEnabled, setPdfPageIndex, moveToPreviousPage, moveToNextPage]);
+	}, [pdfDocument, pdfPage, pdfPageIndex, pdfRenderOptions, pdfDragModeEnabled, setPdfPageIndex, moveToPreviousPage, moveToNextPage, setPdfDragModeEnabled]);
 
 	useEffect(() => {
 		onLoad(pdfViewerController as MutableRefObject<PDFViewerController>);
@@ -216,24 +216,24 @@ const PDFViewer = ({
 
 	const mouseEventHandler = useCallback(
 		(event: MouseEvent) => {
-			if (!dragModeEnabled) {
+			if (!pdfDragModeEnabled) {
 				return;
 			}
 			if (event.buttons === 1) {
-				if (dragBasePosition.current !== null) {
+				if (pdfDragBasePosition.current !== null) {
 					const { baseX, baseY, scale } = pdfRenderOptions;
 					setPdfRenderOptions({
-						baseX: baseX + (dragBasePosition.current[0] - event.pageX) / scale,
-						baseY: baseY + (dragBasePosition.current[1] - event.pageY) / scale,
+						baseX: baseX + (pdfDragBasePosition.current[0] - event.pageX) / scale,
+						baseY: baseY + (pdfDragBasePosition.current[1] - event.pageY) / scale,
 						scale: scale,
 					});
 				}
-				dragBasePosition.current = [event.pageX, event.pageY];
+				pdfDragBasePosition.current = [event.pageX, event.pageY];
 			} else {
-				dragBasePosition.current = null;
+				pdfDragBasePosition.current = null;
 			}
 		},
-		[dragModeEnabled, pdfRenderOptions, setPdfRenderOptions],
+		[pdfDragModeEnabled, pdfRenderOptions, setPdfRenderOptions],
 	);
 
 	useEffect(() => {
@@ -256,8 +256,8 @@ const PDFViewer = ({
 				style={{
 					width: "fit-content",
 					height: "fit-content",
-					cursor: dragModeEnabled ? "move" : "default",
-					userSelect: dragModeEnabled ? "none" : "unset",
+					cursor: pdfDragModeEnabled ? "move" : "default",
+					userSelect: pdfDragModeEnabled ? "none" : "unset",
 				}}
 			>
 				<PDFRenderer
@@ -279,7 +279,7 @@ const PDFViewer = ({
 					gap: "1em",
 				}}
 			>
-				<button onClick={() => setDragModeEnabled(!dragModeEnabled)}>{dragModeEnabled ? "드래그 취소" : "드래그"}</button>
+				<button onClick={() => setPdfDragModeEnabled(!pdfDragModeEnabled)}>{pdfDragModeEnabled ? "드래그 취소" : "드래그"}</button>
 				<button onClick={moveToPreviousPage}>{"<"}</button>
 				<div>
 					{pdfPageIndex + 1}/{pdfDocument?.numPages}

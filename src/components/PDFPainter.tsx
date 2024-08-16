@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, memo, MutableRefObject, useEffect } from "react";
+import { useState, useRef, useCallback, memo, MutableRefObject } from "react";
 import Painter from "./Painter/Painter";
 import { Editor } from "tldraw";
 import type { PDFDocument, PDFPage } from "./PDF/BasePDFRenderer";
@@ -14,7 +14,8 @@ const PDFPainter = ({
 	onPdfPageChange = () => {},
 	onPdfPageIndexChange = () => {},
 	onPdfRenderOptionsChange = () => {},
-	onDragModeChange = () => {},
+	onPdfDragModeChange = () => {},
+	onPainterLoad = () => {},
 }: {
 	pdfDocumentURL: string;
 	onPdfViewerLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
@@ -22,10 +23,11 @@ const PDFPainter = ({
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 	onPdfPageIndexChange?: (pdfPageIndex: number) => void;
 	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
-	onDragModeChange?: (dragModeEnabled: boolean) => void;
+	onPdfDragModeChange?: (pdfDragModeEnabled: boolean) => void;
+	onPainterLoad?: (editor: MutableRefObject<Editor>) => void;
 }) => {
 	const [editorSize, setEditorSize] = useState<[number, number]>([0, 0]);
-	const [editor, setEditor] = useState<Editor | null>(null);
+	const editor = useRef<Editor | null>(null);
 	const currentPageId = useRef<string | null>(null);
 	const [paintMode, setPaintMode] = useState(true);
 
@@ -37,38 +39,34 @@ const PDFPainter = ({
 	);
 
 	const loadPagePaint = useCallback(() => {
-		if (editor === null || currentPageId.current === null) {
+		if (editor.current === null || currentPageId.current === null) {
 			return;
 		}
 		console.log(`Load Paint: ${currentPageId.current}`);
 		try {
-			editor.loadSnapshot(JSON.parse(localStorage.getItem(currentPageId.current) || ""));
+			editor.current.loadSnapshot(JSON.parse(localStorage.getItem(currentPageId.current) || ""));
 		} catch {
 			console.log(`Failed to load paint: ${currentPageId.current}`);
 			console.log("Removing previous paint.");
 			try {
-				editor.loadSnapshot(CleanPainterSnapshot as any);
+				editor.current.loadSnapshot(CleanPainterSnapshot as any);
 			} catch {
 				console.log(`Failed to remove paint.`);
 			}
 		}
-	}, [editor]);
+	}, []);
 
 	const savePagePaint = useCallback(() => {
-		if (editor === null || currentPageId.current === null) {
+		if (editor.current === null || currentPageId.current === null) {
 			return;
 		}
 		console.log(`Save Paint: ${currentPageId.current}`);
 		try {
-			localStorage.setItem(currentPageId.current, JSON.stringify(editor.getSnapshot()));
+			localStorage.setItem(currentPageId.current, JSON.stringify(editor.current.getSnapshot()));
 		} catch {
 			console.log(`Failed to save paint: ${currentPageId.current}`);
 		}
-	}, [editor]);
-
-	useEffect(() => {
-		loadPagePaint();
-	}, [loadPagePaint]);
+	}, []);
 
 	const pdfViewerLoadHandler = useCallback(
 		(pdfViewerController: MutableRefObject<PDFViewerController>) => {
@@ -106,11 +104,11 @@ const PDFPainter = ({
 
 	const pdfRenderOptionsChangeHandler = useCallback(
 		(pdfRenderOptions: PDFRenderOptions) => {
-			if (editor === null) {
+			if (editor.current === null) {
 				return;
 			}
 			const { baseX, baseY, scale } = pdfRenderOptions;
-			editor.setCamera(
+			editor.current.setCamera(
 				{
 					x: -baseX,
 					y: -baseY,
@@ -122,29 +120,34 @@ const PDFPainter = ({
 			);
 			onPdfRenderOptionsChange(pdfRenderOptions);
 		},
-		[editor, onPdfRenderOptionsChange],
+		[onPdfRenderOptionsChange],
 	);
 
 	const pdfDragModeChangeHandler = useCallback(
-		(dragModeEnabled: boolean) => {
-			onDragModeChange(dragModeEnabled);
+		(pdfDragModeEnabled: boolean) => {
+			onPdfDragModeChange(pdfDragModeEnabled);
 		},
-		[onDragModeChange],
+		[onPdfDragModeChange],
 	);
 
 	const editorLoadHandler = useCallback(
-		(editor: Editor) => {
-			setEditor(editor);
-			editor.updateInstanceState({
+		(newEditor: Editor) => {
+			if (editor.current === null) {
+				editor.current = newEditor;
+				loadPagePaint();
+				onPainterLoad(editor as MutableRefObject<Editor>);
+			} else {
+				editor.current = newEditor;
+			}
+			editor.current.updateInstanceState({
 				isDebugMode: false,
 				isReadonly: !paintMode,
 			});
-			editor.setCameraOptions({
+			editor.current.setCameraOptions({
 				isLocked: true,
 			});
-			console.log(editor);
 		},
-		[paintMode],
+		[paintMode, loadPagePaint, onPainterLoad],
 	);
 
 	return (
@@ -163,7 +166,7 @@ const PDFPainter = ({
 					onPdfPageChange={pdfPageChangeHandler}
 					onPdfPageIndexChange={pdfPageIndexChangeHandler}
 					onPdfRenderOptionsChange={pdfRenderOptionsChangeHandler}
-					onDragModeChange={pdfDragModeChangeHandler}
+					onPdfDragModeChange={pdfDragModeChangeHandler}
 				/>
 				<div
 					style={{
