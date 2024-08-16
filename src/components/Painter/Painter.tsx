@@ -18,6 +18,7 @@ const Painter = ({
 			style={{
 				width: width,
 				height: height,
+				pointerEvents: readOnly ? "none" : "unset",
 			}}
 		>
 			<Tldraw onMount={onEditorLoad} hideUi={readOnly}></Tldraw>

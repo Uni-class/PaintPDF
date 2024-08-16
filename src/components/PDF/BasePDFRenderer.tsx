@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, memo } from "react";
+import { useCallback, memo } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -28,38 +28,35 @@ const BasePDFRenderer = ({
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
-	const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null);
-	const [pdfPage, setPdfPage] = useState<PDFPage | null>(null);
-
-	useEffect(() => {
-		if (onPdfDocumentChange) {
+	const onPdfDocumentLoadSuccess = useCallback(
+		(pdfDocument: PDFDocument) => {
 			onPdfDocumentChange(pdfDocument);
-		}
-	}, [pdfDocument, onPdfDocumentChange]);
+		},
+		[onPdfDocumentChange],
+	);
 
-	useEffect(() => {
-		if (onPdfPageChange) {
+	const onPdfPageLoadSuccess = useCallback(
+		(pdfPage: PDFPage) => {
 			onPdfPageChange(pdfPage);
-		}
-	}, [pdfPage, onPdfPageChange]);
+		},
+		[onPdfPageChange],
+	);
 
-	const onPdfDocumentLoadSuccess = useCallback((pdfDocument: PDFDocument) => {
-		setPdfDocument(pdfDocument);
-	}, []);
+	const onPdfDocumentLoadError = useCallback(
+		(error: Error) => {
+			console.log(`Unable to load PDF document: ${error}`);
+			onPdfDocumentChange(null);
+		},
+		[onPdfDocumentChange],
+	);
 
-	const onPdfPageLoadSuccess = useCallback((pdfPage: PDFPage) => {
-		setPdfPage(pdfPage);
-	}, []);
-
-	const onPdfDocumentLoadError = useCallback((error: Error) => {
-		console.log(`Unable to load PDF document: ${error}`);
-		setPdfDocument(null);
-	}, []);
-
-	const onPdfPageLoadError = useCallback((error: Error) => {
-		console.log(`Unable to load PDF page: ${error}`);
-		setPdfPage(null);
-	}, []);
+	const onPdfPageLoadError = useCallback(
+		(error: Error) => {
+			console.log(`Unable to load PDF page: ${error}`);
+			onPdfPageChange(null);
+		},
+		[onPdfPageChange],
+	);
 
 	return (
 		<Document file={pdfDocumentURL} onLoadSuccess={onPdfDocumentLoadSuccess} onLoadError={onPdfDocumentLoadError}>

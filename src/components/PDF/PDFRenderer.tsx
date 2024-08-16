@@ -1,8 +1,10 @@
-import { useState, useEffect, memo } from "react";
+import { memo } from "react";
 import type { PDFDocument, PDFPage } from "./BasePDFRenderer";
 import BasePDFRenderer from "./BasePDFRenderer";
 
-export type PdfRenderOptions = {
+export type PDFRenderOptions = {
+	width: number;
+	height: number;
 	baseX: number;
 	baseY: number;
 	scale: number;
@@ -12,6 +14,8 @@ const PDFRenderer = ({
 	pdfDocumentURL,
 	pdfPageIndex = 0,
 	pdfRenderOptions = {
+		width: 0,
+		height: 0,
 		baseX: 0,
 		baseY: 0,
 		scale: 1,
@@ -21,26 +25,15 @@ const PDFRenderer = ({
 }: {
 	pdfDocumentURL: string;
 	pdfPageIndex?: number;
-	pdfRenderOptions?: PdfRenderOptions;
+	pdfRenderOptions?: PDFRenderOptions;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
-	const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null);
-	const [pdfPage, setPdfPage] = useState<PDFPage | null>(null);
-
-	useEffect(() => {
-		onPdfDocumentChange(pdfDocument);
-	}, [onPdfDocumentChange, pdfDocument]);
-
-	useEffect(() => {
-		onPdfPageChange(pdfPage);
-	}, [onPdfPageChange, pdfPage]);
-
 	return (
 		<div
 			style={{
-				width: pdfPage?.originalWidth,
-				height: pdfPage?.originalHeight,
+				width: pdfRenderOptions.width,
+				height: pdfRenderOptions.height,
 				overflow: "hidden",
 			}}
 		>
@@ -53,8 +46,8 @@ const PDFRenderer = ({
 					pdfDocumentURL={pdfDocumentURL}
 					pdfPageIndex={pdfPageIndex}
 					pdfScale={pdfRenderOptions.scale}
-					onPdfDocumentChange={setPdfDocument}
-					onPdfPageChange={setPdfPage}
+					onPdfDocumentChange={onPdfDocumentChange}
+					onPdfPageChange={onPdfPageChange}
 				/>
 			</div>
 		</div>

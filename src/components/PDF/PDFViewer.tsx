@@ -1,61 +1,144 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, memo, MutableRefObject } from "react";
 import type { PDFDocument, PDFPage } from "./BasePDFRenderer";
 import PDFRenderer from "./PDFRenderer";
-import type { PdfRenderOptions } from "./PDFRenderer";
+import type { PDFRenderOptions } from "./PDFRenderer";
+
+export type PDFViewerController = {
+	getPdfDocument: () => PDFDocument | null;
+	getPdfPage: () => PDFPage | null;
+	getPdfPageIndex: () => number;
+	setPdfPageIndex: (pdfPageIndex: number) => void;
+	moveToPreviousPage: () => void;
+	moveToNextPage: () => void;
+	getPdfPageCount: () => number;
+	getPdfRenderOptions: () => PDFRenderOptions;
+};
 
 const PDFViewer = ({
 	pdfDocumentURL,
+	onLoad = () => {},
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
 	onPdfPageIndexChange = () => {},
 	onPdfRenderOptionsChange = () => {},
 }: {
 	pdfDocumentURL: string;
+	onLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
-	onPdfPageIndexChange?: (index: number) => void;
-	onPdfRenderOptionsChange?: (pdfRenderOptions: PdfRenderOptions) => void;
+	onPdfPageIndexChange?: (pdfPageIndex: number) => void;
+	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
 }) => {
 	const pdfRendererElement = useRef<HTMLDivElement>(null);
-	const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null);
-	const [pdfPage, setPdfPage] = useState<PDFPage | null>(null);
-	const [pdfPageIndex, setPdfPageIndex] = useState(0);
-	const [pdfRenderOptions, setPdfRenderOptions] = useState<PdfRenderOptions>({
+	const [pdfDocument, setPdfDocumentState] = useState<PDFDocument | null>(null);
+	const [pdfPage, setPdfPageState] = useState<PDFPage | null>(null);
+	const [pdfPageIndex, setPdfPageIndexState] = useState<number>(0);
+	const [pdfRenderOptions, setPdfRenderOptionsState] = useState<PDFRenderOptions>({
+		width: 0,
+		height: 0,
 		baseX: 0,
 		baseY: 0,
 		scale: 1,
 	});
 	const [dragModeEnabled, setDragModeEnabled] = useState(false);
+	const pdfViewerController = useRef<PDFViewerController | null>(null);
 
-	useEffect(() => {
-		onPdfDocumentChange(pdfDocument);
-	}, [onPdfDocumentChange, pdfDocument]);
+	const setPdfDocument = useCallback(
+		(pdfDocument: PDFDocument | null) => {
+			setPdfDocumentState(pdfDocument);
+			onPdfDocumentChange(pdfDocument);
+		},
+		[onPdfDocumentChange],
+	);
 
-	useEffect(() => {
-		onPdfPageChange(pdfPage);
-	}, [onPdfPageChange, pdfPage]);
+	const setPdfPage = useCallback(
+		(pdfPage: PDFPage | null) => {
+			setPdfPageState(pdfPage);
+			setPdfRenderOptionsState({
+				...pdfRenderOptions,
+				width: pdfPage?.originalWidth || 0,
+				height: pdfPage?.originalHeight || 0,
+			});
+			onPdfPageChange(pdfPage);
+		},
+		[pdfRenderOptions, onPdfPageChange],
+	);
 
-	useEffect(() => {
-		onPdfPageIndexChange(pdfPageIndex);
-	}, [onPdfPageIndexChange, pdfPageIndex]);
+	const setPdfPageIndex = useCallback(
+		(pdfPageIndex: number) => {
+			setPdfPageIndexState(pdfPageIndex);
+			onPdfPageIndexChange(pdfPageIndex);
+		},
+		[onPdfPageIndexChange],
+	);
 
-	useEffect(() => {
-		onPdfRenderOptionsChange(pdfRenderOptions);
-	}, [onPdfRenderOptionsChange, pdfRenderOptions]);
+	const setPdfRenderOptions = useCallback(
+		({ baseX, baseY, scale }: { baseX: number; baseY: number; scale: number }) => {
+			if (pdfPage === null) {
+				return;
+			}
+			const newScale = Math.max(scale, 1);
+			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
+			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
+			const pdfRenderOptions = {
+				width: pdfPage.originalWidth,
+				height: pdfPage.originalHeight,
+				baseX: newBaseX,
+				baseY: newBaseY,
+				scale: Number(newScale.toFixed(2)),
+			};
+			setPdfRenderOptionsState(pdfRenderOptions);
+			onPdfRenderOptionsChange(pdfRenderOptions);
+		},
+		[pdfPage, onPdfRenderOptionsChange],
+	);
 
 	const moveToPreviousPage = useCallback(() => {
-		if (!pdfDocument) {
+		if (pdfDocument === null) {
 			return;
 		}
 		setPdfPageIndex(Math.max(pdfPageIndex - 1, 0));
-	}, [pdfDocument, pdfPageIndex]);
+	}, [pdfDocument, pdfPageIndex, setPdfPageIndex]);
 
 	const moveToNextPage = useCallback(() => {
-		if (!pdfDocument) {
+		if (pdfDocument === null) {
 			return;
 		}
 		setPdfPageIndex(Math.min(pdfPageIndex + 1, pdfDocument.numPages - 1));
-	}, [pdfDocument, pdfPageIndex]);
+	}, [pdfDocument, pdfPageIndex, setPdfPageIndex]);
+
+	useEffect(() => {
+		pdfViewerController.current = {
+			getPdfDocument: () => {
+				return pdfDocument;
+			},
+			getPdfPage: () => {
+				return pdfPage;
+			},
+			getPdfPageIndex: () => {
+				return pdfPageIndex;
+			},
+			setPdfPageIndex: (pdfPageIndex: number) => {
+				setPdfPageIndex(pdfPageIndex);
+			},
+			moveToPreviousPage: () => {
+				moveToPreviousPage();
+			},
+			moveToNextPage: () => {
+				moveToNextPage();
+			},
+			getPdfPageCount: () => {
+				return pdfDocument?.numPages || 0;
+			},
+			getPdfRenderOptions: () => {
+				return pdfRenderOptions;
+			},
+		};
+	}, [pdfDocument, pdfPage, pdfPageIndex, pdfRenderOptions, setPdfPageIndex, moveToPreviousPage, moveToNextPage]);
+
+	useEffect(() => {
+		onLoad(pdfViewerController as MutableRefObject<PDFViewerController>);
+	}, []);
 
 	const keydownEventHandler = useCallback(
 		(event: KeyboardEvent) => {
@@ -78,26 +161,9 @@ const PDFViewer = ({
 		return () => document.removeEventListener("keydown", keydownEventHandler);
 	}, [keydownEventHandler]);
 
-	const requestUpdatePdfRenderOptions = useCallback(
-		({ baseX, baseY, scale }: PdfRenderOptions) => {
-			if (!pdfPage) {
-				return;
-			}
-			const newScale = Math.max(scale, 1);
-			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
-			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
-			setPdfRenderOptions({
-				baseX: newBaseX,
-				baseY: newBaseY,
-				scale: Number(newScale.toFixed(2)),
-			});
-		},
-		[pdfPage],
-	);
-
 	const wheelEventHandler = useCallback(
 		(event: WheelEvent) => {
-			if (!pdfPage) {
+			if (pdfPage === null) {
 				return;
 			}
 			const { baseX, baseY, scale } = pdfRenderOptions;
@@ -112,13 +178,13 @@ const PDFViewer = ({
 			const pdfDocumentOffsetY = Math.max(Math.min(Math.round(baseY + offsetY / scale), Math.floor(pdfPage.originalHeight)), 0);
 			const scaledBaseX = pdfDocumentOffsetX - offsetX / newScale;
 			const scaledBaseY = pdfDocumentOffsetY - offsetY / newScale;
-			requestUpdatePdfRenderOptions({
+			setPdfRenderOptions({
 				baseX: scaledBaseX,
 				baseY: scaledBaseY,
 				scale: newScale,
 			});
 		},
-		[pdfRenderOptions, pdfPage, requestUpdatePdfRenderOptions],
+		[pdfRenderOptions, pdfPage, setPdfRenderOptions],
 	);
 
 	useEffect(() => {
@@ -138,13 +204,13 @@ const PDFViewer = ({
 				return;
 			}
 			const { baseX, baseY, scale } = pdfRenderOptions;
-			requestUpdatePdfRenderOptions({
+			setPdfRenderOptions({
 				baseX: baseX - event.movementX / scale,
 				baseY: baseY - event.movementY / scale,
 				scale: scale,
 			});
 		},
-		[dragModeEnabled, pdfRenderOptions, requestUpdatePdfRenderOptions],
+		[dragModeEnabled, pdfRenderOptions, setPdfRenderOptions],
 	);
 
 	useEffect(() => {
