@@ -202,6 +202,7 @@ const PDFViewer = ({
 				baseY: scaledBaseY,
 				scale: newScale,
 			});
+			event.preventDefault();
 		},
 		[pdfRenderOptions, pdfPage, setPdfRenderOptions],
 	);
