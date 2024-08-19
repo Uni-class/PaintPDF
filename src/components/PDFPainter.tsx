@@ -32,13 +32,6 @@ const PDFPainter = ({
 	const currentPageIndex = useRef<number | null>(null);
 	const [paintMode, setPaintModeState] = useState(true);
 
-	const getPageId = useCallback(
-		(pdfPageIndex: number) => {
-			return `${pdfDocumentURL}_${pdfPageIndex}`;
-		},
-		[pdfDocumentURL],
-	);
-
 	const getPaintId = useCallback(
 		(editorId: number, pdfPageIndex: number) => {
 			return `${pdfDocumentURL}_${editorId}_${pdfPageIndex}`;
@@ -54,12 +47,12 @@ const PDFPainter = ({
 			const paintId = getPaintId(Number(editorId), currentPageIndex.current);
 			console.log(`Load Paint: ${paintId}`);
 			try {
-				editor.loadSnapshot(JSON.parse(localStorage.getItem(paintId) || ""));
+				editor.store.loadStoreSnapshot(JSON.parse(localStorage.getItem(paintId) || ""));
 			} catch {
 				console.log(`Failed to load paint: ${paintId}`);
 				console.log("Removing previous paint.");
 				try {
-					editor.loadSnapshot(CleanPainterSnapshot as any);
+					editor.store.loadStoreSnapshot(CleanPainterSnapshot as any);
 				} catch {
 					console.log(`Failed to remove paint.`);
 				}
@@ -75,7 +68,8 @@ const PDFPainter = ({
 			const paintId = getPaintId(Number(editorId), currentPageIndex.current);
 			console.log(`Save Paint: ${paintId}`);
 			try {
-				localStorage.setItem(paintId, JSON.stringify(editor.getSnapshot()));
+				console.log(editor.store.getStoreSnapshot());
+				localStorage.setItem(paintId, JSON.stringify(editor.store.getStoreSnapshot()));
 			} catch {
 				console.log(`Failed to save paint: ${paintId}`);
 			}
@@ -88,7 +82,7 @@ const PDFPainter = ({
 			loadPagePaint();
 			onPdfViewerLoad(pdfViewerController);
 		},
-		[loadPagePaint, onPdfViewerLoad, getPageId],
+		[loadPagePaint, onPdfViewerLoad],
 	);
 
 	const pdfDocumentChangeHandler = useCallback(
@@ -113,7 +107,7 @@ const PDFPainter = ({
 			loadPagePaint();
 			onPdfPageIndexChange(pdfPageIndex);
 		},
-		[loadPagePaint, savePagePaint, onPdfPageIndexChange, getPageId],
+		[loadPagePaint, savePagePaint, onPdfPageIndexChange],
 	);
 
 	const pdfRenderOptionsChangeHandler = useCallback(
