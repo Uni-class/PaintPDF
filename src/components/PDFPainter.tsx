@@ -221,8 +221,8 @@ const PDFPainter = ({
 				<div
 					style={{
 						position: "relative",
-						width: displaySize[0],
-						height: displaySize[1],
+						width: "fit-content",
+						height: "fit-content",
 					}}
 				>
 					<PDFViewer
