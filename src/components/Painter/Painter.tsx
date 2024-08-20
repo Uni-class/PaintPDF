@@ -1,5 +1,7 @@
-import { memo } from "react";
-import { Editor, Tldraw } from "tldraw";
+import { useMemo, memo } from "react";
+import { Editor, Tldraw, TLComponents } from "tldraw";
+
+import "tldraw/tldraw.css";
 import "./Painter.css";
 
 const Painter = ({
@@ -15,6 +17,13 @@ const Painter = ({
 	paintEnabled?: boolean;
 	onEditorLoad?: (editor: Editor) => void;
 }) => {
+	const components = useMemo<TLComponents>(
+		() => ({
+			PageMenu: null,
+		}),
+		[],
+	);
+
 	return (
 		<div
 			style={{
@@ -23,7 +32,7 @@ const Painter = ({
 				pointerEvents: readOnly ? "none" : "unset",
 			}}
 		>
-			<Tldraw onMount={onEditorLoad} hideUi={readOnly || !paintEnabled}></Tldraw>
+			<Tldraw onMount={onEditorLoad} hideUi={readOnly || !paintEnabled} components={components}></Tldraw>
 		</div>
 	);
 };
