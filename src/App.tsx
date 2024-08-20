@@ -10,6 +10,8 @@ export default function App() {
 				display: "flex",
 				width: "80vw",
 				height: "80vh",
+				justifyContent: "center",
+				alignItems: "center",
 			}}
 		>
 			<PDFPainter pdfDocumentURL={TestDocument}>

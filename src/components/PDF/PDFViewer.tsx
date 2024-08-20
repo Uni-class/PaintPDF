@@ -18,6 +18,8 @@ export type PDFViewerController = {
 
 const PDFViewer = ({
 	pdfDocumentURL,
+	width = 0,
+	height = 0,
 	onLoad = () => {},
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
@@ -26,6 +28,8 @@ const PDFViewer = ({
 	onPdfDragModeChange = () => {},
 }: {
 	pdfDocumentURL: string;
+	width?: number;
+	height?: number;
 	onLoad?: (pdfViewerController: MutableRefObject<PDFViewerController>) => void;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
@@ -38,8 +42,8 @@ const PDFViewer = ({
 	const [pdfPage, setPdfPageState] = useState<PDFPage | null>(null);
 	const [pdfPageIndex, setPdfPageIndexState] = useState<number>(0);
 	const [pdfRenderOptions, setPdfRenderOptionsState] = useState<PDFRenderOptions>({
-		width: 0,
-		height: 0,
+		width: width,
+		height: height,
 		baseX: 0,
 		baseY: 0,
 		scale: 1,
@@ -81,8 +85,8 @@ const PDFViewer = ({
 			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
 			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
 			const newPdfRenderOptions = {
-				width: pdfRendererElement.current?.offsetWidth || 0,
-				height: pdfRendererElement.current?.offsetHeight || 0,
+				width: width,
+				height: height,
 				baseX: newBaseX,
 				baseY: newBaseY,
 				scale: Number(newScale.toFixed(2)),
@@ -90,20 +94,20 @@ const PDFViewer = ({
 			setPdfRenderOptionsState(newPdfRenderOptions);
 			onPdfRenderOptionsChange(newPdfRenderOptions);
 		},
-		[pdfPage, onPdfRenderOptionsChange],
+		[pdfPage, width, height, onPdfRenderOptionsChange],
 	);
 
-	const pdfRendererElementMountHandler = useCallback(
-		(element: HTMLDivElement) => {
-			pdfRendererElement.current = element;
-			setPdfRenderOptions({
-				baseX: 0,
-				baseY: 0,
-				scale: 1,
-			});
-		},
-		[setPdfRenderOptions],
-	);
+	useEffect(() => {
+		setPdfRenderOptionsState((pdfRenderOptions) => {
+			const newPdfRenderOptions = {
+				...pdfRenderOptions,
+				width: width,
+				height: height,
+			};
+			onPdfRenderOptionsChange(newPdfRenderOptions);
+			return newPdfRenderOptions;
+		});
+	}, [width, height, setPdfRenderOptionsState, onPdfRenderOptionsChange]);
 
 	const setPdfDragModeEnabled = useCallback(
 		(pdfDragModeEnabled: boolean) => {
@@ -189,6 +193,7 @@ const PDFViewer = ({
 
 	const wheelEventHandler = useCallback(
 		(event: WheelEvent) => {
+			event.preventDefault();
 			if (pdfPage === null) {
 				return;
 			}
@@ -252,17 +257,10 @@ const PDFViewer = ({
 	}, [mouseEventHandler]);
 
 	return (
-		<div
-			style={{
-				width: "100%",
-				height: "100%",
-			}}
-		>
+		<div>
 			<div
-				ref={pdfRendererElementMountHandler}
+				ref={pdfRendererElement}
 				style={{
-					width: "100%",
-					height: "100%",
 					cursor: pdfDragModeEnabled ? "move" : "default",
 					userSelect: pdfDragModeEnabled ? "none" : "unset",
 				}}

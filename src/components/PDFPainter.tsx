@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, memo, isValidElement, cloneElement, Children, MutableRefObject, ReactNode, ReactElement } from "react";
+import { useState, useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, MutableRefObject, ReactNode, ReactElement } from "react";
 import { Editor } from "tldraw";
 import type { PDFDocument, PDFPage } from "./PDF/BasePDFRenderer";
 import type { PDFRenderOptions } from "./PDF/PDFRenderer";
@@ -27,10 +27,32 @@ const PDFPainter = ({
 	onPaintModeChange?: (paintModeEnabled: boolean) => void;
 	children?: ReactNode;
 }) => {
-	const [editorSize, setEditorSize] = useState<[number, number]>([0, 0]);
+	const painterElement = useRef<HTMLDivElement | null>(null);
+	const [displaySize, setDisplaySize] = useState<[number, number]>([0, 0]);
+	const currentPdfPage = useRef<PDFPage | null>(null);
 	const editors = useRef<{ [editorId: number]: Editor }>({});
 	const currentPageIndex = useRef<number | null>(null);
 	const [paintMode, setPaintModeState] = useState(true);
+
+	const updateDisplaySize = useCallback(() => {
+		if (painterElement.current && currentPdfPage.current) {
+			const elementWidth = painterElement.current.offsetWidth;
+			const elementHeight = painterElement.current.offsetHeight;
+			const pdfPageWidth = currentPdfPage.current.originalWidth;
+			const pdfPageHeight = currentPdfPage.current.originalHeight;
+			const elementRatio = elementWidth / elementHeight;
+			const pdfPageRatio = pdfPageWidth / pdfPageHeight;
+			let newDisplaySize: [number, number];
+			if (pdfPageRatio > elementRatio) {
+				newDisplaySize = [elementWidth, elementWidth / pdfPageRatio];
+			} else {
+				newDisplaySize = [elementHeight * pdfPageRatio, elementHeight];
+			}
+			if (newDisplaySize[0] !== displaySize[0] || newDisplaySize[1] !== displaySize[1]) {
+				setDisplaySize(newDisplaySize);
+			}
+		}
+	}, [displaySize]);
 
 	const getPaintId = useCallback(
 		(editorId: number, pdfPageIndex: number) => {
@@ -68,7 +90,6 @@ const PDFPainter = ({
 			const paintId = getPaintId(Number(editorId), currentPageIndex.current);
 			console.log(`Save Paint: ${paintId}`);
 			try {
-				console.log(editor.store.getStoreSnapshot());
 				localStorage.setItem(paintId, JSON.stringify(editor.store.getStoreSnapshot()));
 			} catch {
 				console.log(`Failed to save paint: ${paintId}`);
@@ -94,9 +115,11 @@ const PDFPainter = ({
 
 	const pdfPageChangeHandler = useCallback(
 		(pdfPage: PDFPage | null) => {
+			currentPdfPage.current = pdfPage;
+			updateDisplaySize();
 			onPdfPageChange(pdfPage);
 		},
-		[onPdfPageChange],
+		[onPdfPageChange, updateDisplaySize],
 	);
 
 	const pdfPageIndexChangeHandler = useCallback(
@@ -111,10 +134,7 @@ const PDFPainter = ({
 
 	const pdfRenderOptionsChangeHandler = useCallback(
 		(pdfRenderOptions: PDFRenderOptions) => {
-			const { width, height, baseX, baseY, scale } = pdfRenderOptions;
-			if (editorSize[0] !== width || editorSize[1] !== height) {
-				setEditorSize([width, height]);
-			}
+			const { baseX, baseY, scale } = pdfRenderOptions;
 			for (const editor of Object.values(editors.current)) {
 				editor.setCamera(
 					{
@@ -166,6 +186,20 @@ const PDFPainter = ({
 		[paintMode, loadPagePaint],
 	);
 
+	useEffect(() => {
+		const resizeObserver = new ResizeObserver(() => {
+			updateDisplaySize();
+		});
+
+		if (painterElement.current) {
+			resizeObserver.observe(painterElement.current);
+		}
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [updateDisplaySize]);
+
 	return (
 		<div
 			style={{
@@ -174,55 +208,78 @@ const PDFPainter = ({
 			}}
 		>
 			<div
+				ref={painterElement}
 				style={{
-					position: "relative",
+					display: "flex",
 					width: "100%",
 					height: "100%",
+					justifyContent: "center",
+					alignItems: "center",
+					//overflow: "hidden",
 				}}
 			>
-				<PDFViewer
-					onLoad={pdfViewerLoadHandler}
-					pdfDocumentURL={pdfDocumentURL}
-					onPdfDocumentChange={pdfDocumentChangeHandler}
-					onPdfPageChange={pdfPageChangeHandler}
-					onPdfPageIndexChange={pdfPageIndexChangeHandler}
-					onPdfRenderOptionsChange={pdfRenderOptionsChangeHandler}
-					onPdfDragModeChange={pdfDragModeChangeHandler}
-				/>
-				{Children.toArray(children).map((element: ReactNode, index: number) => {
-					if (isValidElement(element)) {
-						return (
-							<div
-								key={index}
-								style={{
-									position: "absolute",
-									top: 0,
-									left: 0,
-									width: editorSize[0],
-									height: editorSize[1],
-									pointerEvents: paintMode ? "unset" : "none",
-								}}
-							>
-								{cloneElement(
-									element as ReactElement<{
-										paintEnabled?: boolean;
-										onEditorLoad?: (editor: Editor) => void;
-									}>,
-									{
-										paintEnabled: paintMode,
-										onEditorLoad: (editor: Editor) => {
-											editorLoadHandler(index, editor);
-											element.props.onEditorLoad(editor);
+				<div
+					style={{
+						position: "relative",
+						width: displaySize[0],
+						height: displaySize[1],
+					}}
+				>
+					<PDFViewer
+						width={displaySize[0]}
+						height={displaySize[1]}
+						onLoad={pdfViewerLoadHandler}
+						pdfDocumentURL={pdfDocumentURL}
+						onPdfDocumentChange={pdfDocumentChangeHandler}
+						onPdfPageChange={pdfPageChangeHandler}
+						onPdfPageIndexChange={pdfPageIndexChangeHandler}
+						onPdfRenderOptionsChange={pdfRenderOptionsChangeHandler}
+						onPdfDragModeChange={pdfDragModeChangeHandler}
+					/>
+					{Children.toArray(children).map((element: ReactNode, index: number) => {
+						if (isValidElement(element)) {
+							return (
+								<div
+									key={index}
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										width: displaySize[0],
+										height: displaySize[1],
+										pointerEvents: paintMode ? "unset" : "none",
+									}}
+								>
+									{cloneElement(
+										element as ReactElement<{
+											paintEnabled?: boolean;
+											onEditorLoad?: (editor: Editor) => void;
+										}>,
+										{
+											paintEnabled: paintMode,
+											onEditorLoad: (editor: Editor) => {
+												editorLoadHandler(index, editor);
+												element.props.onEditorLoad(editor);
+											},
 										},
-									},
-								)}
-							</div>
-						);
-					}
-					return element;
-				})}
+									)}
+								</div>
+							);
+						}
+						return element;
+					})}
+				</div>
 			</div>
-			<button onClick={() => setPaintMode(!paintMode)}>{paintMode ? "그리기 모드 해제" : "그리기 모드"}</button>
+			<button
+				style={{
+					position: "absolute",
+					bottom: 0,
+					left: 0,
+				}}
+				onClick={() => setPaintMode(!paintMode)}
+			>
+				{paintMode ? "그리기 모드 해제" : "그리기 모드"}
+			</button>
 		</div>
 	);
 };

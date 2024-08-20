@@ -18,17 +18,17 @@ export type PDFPage = pdfjs.PDFPageProxy & {
 const BasePDFRenderer = ({
 	pdfDocumentURL,
 	pdfPageIndex,
-	pdfMaxWidth,
-	pdfMaxHeight,
-	pdfScale,
+	pdfRenderWidth,
+	pdfRenderHeight,
+	pdfRenderScale,
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
 }: {
 	pdfDocumentURL: string;
 	pdfPageIndex: number;
-	pdfMaxWidth: number;
-	pdfMaxHeight: number;
-	pdfScale: number;
+	pdfRenderWidth: number;
+	pdfRenderHeight: number;
+	pdfRenderScale: number;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
@@ -68,8 +68,8 @@ const BasePDFRenderer = ({
 				<div
 					style={{
 						display: "flex",
-						width: pdfMaxWidth,
-						height: pdfMaxHeight,
+						width: pdfRenderWidth,
+						height: pdfRenderHeight,
 						justifyContent: "center",
 						alignItems: "center",
 					}}
@@ -78,7 +78,7 @@ const BasePDFRenderer = ({
 				</div>
 			);
 		},
-		[pdfMaxWidth, pdfMaxHeight],
+		[pdfRenderWidth, pdfRenderHeight],
 	);
 
 	const loadingComponent = useMemo(() => {
@@ -111,9 +111,9 @@ const BasePDFRenderer = ({
 				loading={loadingComponent}
 				error={errorComponent}
 				noData={errorComponent}
-				width={pdfMaxWidth}
-				height={pdfMaxHeight}
-				scale={pdfScale}
+				width={pdfRenderWidth}
+				height={pdfRenderHeight}
+				scale={pdfRenderScale}
 				pageIndex={pdfPageIndex}
 				onLoadSuccess={onPdfPageLoadSuccess}
 				onLoadError={onPdfPageLoadError}
