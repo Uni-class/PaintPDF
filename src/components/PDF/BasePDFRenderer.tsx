@@ -1,4 +1,4 @@
-import { useCallback, memo } from "react";
+import { useCallback, useMemo, memo, ReactNode } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -17,14 +17,18 @@ export type PDFPage = pdfjs.PDFPageProxy & {
 
 const BasePDFRenderer = ({
 	pdfDocumentURL,
-	pdfPageIndex = 0,
-	pdfScale = 1,
+	pdfPageIndex,
+	pdfMaxWidth,
+	pdfMaxHeight,
+	pdfScale,
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
 }: {
 	pdfDocumentURL: string;
-	pdfPageIndex?: number;
-	pdfScale?: number;
+	pdfPageIndex: number;
+	pdfMaxWidth: number;
+	pdfMaxHeight: number;
+	pdfScale: number;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
@@ -58,9 +62,62 @@ const BasePDFRenderer = ({
 		[onPdfPageChange],
 	);
 
+	const createFallback = useCallback(
+		(fallback: ReactNode) => {
+			return (
+				<div
+					style={{
+						display: "flex",
+						width: pdfMaxWidth,
+						height: pdfMaxHeight,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					{fallback}
+				</div>
+			);
+		},
+		[pdfMaxWidth, pdfMaxHeight],
+	);
+
+	const loadingComponent = useMemo(() => {
+		return createFallback(
+			<div
+				style={{
+					fontSize: "1.2em",
+				}}
+			>
+				불러오는 중...
+			</div>,
+		);
+	}, [createFallback]);
+
+	const errorComponent = useMemo(() => {
+		return createFallback(
+			<div
+				style={{
+					fontSize: "1.2em",
+				}}
+			>
+				오류가 발생하였습니다.
+			</div>,
+		);
+	}, [createFallback]);
+
 	return (
 		<Document file={pdfDocumentURL} onLoadSuccess={onPdfDocumentLoadSuccess} onLoadError={onPdfDocumentLoadError}>
-			<Page scale={pdfScale} pageIndex={pdfPageIndex} onLoadSuccess={onPdfPageLoadSuccess} onLoadError={onPdfPageLoadError} />
+			<Page
+				loading={loadingComponent}
+				error={errorComponent}
+				noData={errorComponent}
+				width={pdfMaxWidth}
+				height={pdfMaxHeight}
+				scale={pdfScale}
+				pageIndex={pdfPageIndex}
+				onLoadSuccess={onPdfPageLoadSuccess}
+				onLoadError={onPdfPageLoadError}
+			/>
 		</Document>
 	);
 };

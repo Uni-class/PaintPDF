@@ -94,7 +94,6 @@ const PDFPainter = ({
 
 	const pdfPageChangeHandler = useCallback(
 		(pdfPage: PDFPage | null) => {
-			setEditorSize([pdfPage?.originalWidth || 0, pdfPage?.originalHeight || 0]);
 			onPdfPageChange(pdfPage);
 		},
 		[onPdfPageChange],
@@ -112,7 +111,10 @@ const PDFPainter = ({
 
 	const pdfRenderOptionsChangeHandler = useCallback(
 		(pdfRenderOptions: PDFRenderOptions) => {
-			const { baseX, baseY, scale } = pdfRenderOptions;
+			const { width, height, baseX, baseY, scale } = pdfRenderOptions;
+			if (editorSize[0] !== width || editorSize[1] !== height) {
+				setEditorSize([width, height]);
+			}
 			for (const editor of Object.values(editors.current)) {
 				editor.setCamera(
 					{
@@ -165,12 +167,17 @@ const PDFPainter = ({
 	);
 
 	return (
-		<div>
+		<div
+			style={{
+				width: "100%",
+				height: "100%",
+			}}
+		>
 			<div
 				style={{
 					position: "relative",
-					width: "fit-content",
-					height: "fit-content",
+					width: "100%",
+					height: "100%",
 				}}
 			>
 				<PDFViewer

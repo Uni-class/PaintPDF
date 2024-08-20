@@ -29,6 +29,7 @@ const PDFRenderer = ({
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
+	console.log(pdfRenderOptions);
 	return (
 		<div
 			style={{
@@ -45,6 +46,8 @@ const PDFRenderer = ({
 				<BasePDFRenderer
 					pdfDocumentURL={pdfDocumentURL}
 					pdfPageIndex={pdfPageIndex}
+					pdfMaxWidth={pdfRenderOptions.width}
+					pdfMaxHeight={pdfRenderOptions.height}
 					pdfScale={pdfRenderOptions.scale}
 					onPdfDocumentChange={onPdfDocumentChange}
 					onPdfPageChange={onPdfPageChange}

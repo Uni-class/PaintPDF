@@ -33,7 +33,7 @@ const PDFViewer = ({
 	onPdfRenderOptionsChange?: (pdfRenderOptions: PDFRenderOptions) => void;
 	onPdfDragModeChange?: (pdfDragModeEnabled: boolean) => void;
 }) => {
-	const pdfRendererElement = useRef<HTMLDivElement>(null);
+	const pdfRendererElement = useRef<HTMLDivElement | null>(null);
 	const [pdfDocument, setPdfDocumentState] = useState<PDFDocument | null>(null);
 	const [pdfPage, setPdfPageState] = useState<PDFPage | null>(null);
 	const [pdfPageIndex, setPdfPageIndexState] = useState<number>(0);
@@ -59,14 +59,9 @@ const PDFViewer = ({
 	const setPdfPage = useCallback(
 		(pdfPage: PDFPage | null) => {
 			setPdfPageState(pdfPage);
-			setPdfRenderOptionsState({
-				...pdfRenderOptions,
-				width: pdfPage?.originalWidth || 0,
-				height: pdfPage?.originalHeight || 0,
-			});
 			onPdfPageChange(pdfPage);
 		},
-		[pdfRenderOptions, onPdfPageChange],
+		[onPdfPageChange],
 	);
 
 	const setPdfPageIndex = useCallback(
@@ -85,17 +80,29 @@ const PDFViewer = ({
 			const newScale = Math.max(scale, 1);
 			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
 			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
-			const pdfRenderOptions = {
-				width: pdfPage.originalWidth,
-				height: pdfPage.originalHeight,
+			const newPdfRenderOptions = {
+				width: pdfRendererElement.current?.offsetWidth || 0,
+				height: pdfRendererElement.current?.offsetHeight || 0,
 				baseX: newBaseX,
 				baseY: newBaseY,
 				scale: Number(newScale.toFixed(2)),
 			};
-			setPdfRenderOptionsState(pdfRenderOptions);
-			onPdfRenderOptionsChange(pdfRenderOptions);
+			setPdfRenderOptionsState(newPdfRenderOptions);
+			onPdfRenderOptionsChange(newPdfRenderOptions);
 		},
 		[pdfPage, onPdfRenderOptionsChange],
+	);
+
+	const pdfRendererElementMountHandler = useCallback(
+		(element: HTMLDivElement) => {
+			pdfRendererElement.current = element;
+			setPdfRenderOptions({
+				baseX: 0,
+				baseY: 0,
+				scale: 1,
+			});
+		},
+		[setPdfRenderOptions],
 	);
 
 	const setPdfDragModeEnabled = useCallback(
@@ -247,15 +254,15 @@ const PDFViewer = ({
 	return (
 		<div
 			style={{
-				width: "fit-content",
-				height: "fit-content",
+				width: "100%",
+				height: "100%",
 			}}
 		>
 			<div
-				ref={pdfRendererElement}
+				ref={pdfRendererElementMountHandler}
 				style={{
-					width: "fit-content",
-					height: "fit-content",
+					width: "100%",
+					height: "100%",
 					cursor: pdfDragModeEnabled ? "move" : "default",
 					userSelect: pdfDragModeEnabled ? "none" : "unset",
 				}}
