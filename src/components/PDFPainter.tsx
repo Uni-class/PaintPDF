@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, MutableRefObject, ReactNode, ReactElement } from "react";
 import { Editor } from "tldraw";
-import type { PDFDocument, PDFPage } from "./PDF/BasePDFRenderer";
-import type { PDFRenderOptions } from "./PDF/PDFRenderer";
 import PDFViewer from "./PDF/PDFViewer";
-import type { PDFViewerController } from "./PDF/PDFViewer";
 import CleanPainterSnapshot from "../assets/snapshot.json";
+import type { PDFDocument, PDFPage, PDFRenderOptions, PDFViewerController } from "./PDF/types";
 
 const PDFPainter = ({
 	pdfDocumentURL,

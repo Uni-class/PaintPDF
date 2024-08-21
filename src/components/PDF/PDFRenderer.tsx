@@ -1,14 +1,6 @@
 import { memo } from "react";
-import type { PDFDocument, PDFPage } from "./BasePDFRenderer";
 import BasePDFRenderer from "./BasePDFRenderer";
-
-export type PDFRenderOptions = {
-	width: number;
-	height: number;
-	baseX: number;
-	baseY: number;
-	scale: number;
-};
+import type { PDFDocument, PDFPage, PDFRenderOptions } from "./types";
 
 const PDFRenderer = ({
 	pdfDocumentURL,

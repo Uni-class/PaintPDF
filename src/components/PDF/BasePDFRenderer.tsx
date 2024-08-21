@@ -1,19 +1,11 @@
 import { useCallback, useMemo, memo, ReactNode } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
+import type { PDFDocument, PDFPage } from "./types";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-export type PDFDocument = pdfjs.PDFDocumentProxy;
-
-export type PDFPage = pdfjs.PDFPageProxy & {
-	width: number;
-	height: number;
-	originalWidth: number;
-	originalHeight: number;
-};
 
 const BasePDFRenderer = ({
 	pdfDocumentURL,

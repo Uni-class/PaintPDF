@@ -1,20 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo, MutableRefObject } from "react";
-import type { PDFDocument, PDFPage } from "./BasePDFRenderer";
 import PDFRenderer from "./PDFRenderer";
-import type { PDFRenderOptions } from "./PDFRenderer";
-
-export type PDFViewerController = {
-	getPdfDocument: () => PDFDocument | null;
-	getPdfPage: () => PDFPage | null;
-	getPdfPageIndex: () => number;
-	setPdfPageIndex: (pdfPageIndex: number) => void;
-	moveToPreviousPage: () => void;
-	moveToNextPage: () => void;
-	getPdfPageCount: () => number;
-	getPdfRenderOptions: () => PDFRenderOptions;
-	isPdfDragModeEnabled: () => boolean;
-	setPdfDragModeEnabled: (pdfDragModeEnabled: boolean) => void;
-};
+import type { PDFDocument, PDFPage, PDFRenderOptions, PDFViewerController } from "./types";
 
 const PDFViewer = ({
 	pdfDocumentURL,
