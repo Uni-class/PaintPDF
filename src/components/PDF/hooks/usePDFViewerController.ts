@@ -14,7 +14,6 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		scale: 1,
 	});
 	const [dragModeEnabled, setDragModeEnabled] = useState(false);
-	const dragBasePosition = useRef<[number, number] | null>(null);
 
 	const setRenderOptions = useCallback(
 		({ width, height, baseX, baseY, scale }: PDFRenderOptions) => {
@@ -29,7 +28,7 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 				height: height,
 				baseX: newBaseX,
 				baseY: newBaseY,
-				scale: Number(newScale.toFixed(2)),
+				scale: newScale,
 			};
 			setRawRenderOptions((renderOptions) => {
 				if (
@@ -189,15 +188,11 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 			}
 			event.preventDefault();
 			if (event.buttons === 1) {
-				if (dragBasePosition.current !== null) {
-					pdfViewerController.drag({
-						deltaX: dragBasePosition.current[0] - event.pageX,
-						deltaY: dragBasePosition.current[1] - event.pageY,
-					});
-				}
-				dragBasePosition.current = [event.pageX, event.pageY];
-			} else {
-				dragBasePosition.current = null;
+				console.log(event.movementX, event.movementY);
+				pdfViewerController.drag({
+					deltaX: -event.movementX,
+					deltaY: -event.movementY,
+				});
 			}
 		},
 		[dragModeEnabled, pdfViewerController],

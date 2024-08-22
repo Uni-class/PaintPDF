@@ -50,23 +50,33 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 		[pdfDocumentURL],
 	);
 
+	const clearEditorPaint = useCallback((editor: Editor) => {
+		console.log("Reset Painter");
+		try {
+			editor.loadSnapshot(CleanPainterSnapshot as any);
+		} catch {
+			console.log(`Failed to reset painter.`);
+		}
+	}, []);
+
 	const loadEditorPagePaint = useCallback(
 		(pageIndex: number, editorId: string, editor: Editor) => {
 			const paintId = getPaintId(Number(editorId), pageIndex);
 			console.log(`Load Paint: ${paintId}`);
-			try {
-				editor.store.loadStoreSnapshot(JSON.parse(localStorage.getItem(paintId) || ""));
-			} catch {
-				console.log(`Failed to load paint: ${paintId}`);
-				console.log("Removing previous paint.");
+			const snapShot = localStorage.getItem(paintId);
+			if (snapShot === null) {
+				console.log("Snapshot not found.");
+				clearEditorPaint(editor);
+			} else {
 				try {
-					editor.store.loadStoreSnapshot(CleanPainterSnapshot as any);
+					editor.loadSnapshot(JSON.parse(snapShot));
 				} catch {
-					console.log(`Failed to remove paint.`);
+					console.log(`Failed to load paint: ${paintId}`);
+					clearEditorPaint(editor);
 				}
 			}
 		},
-		[getPaintId],
+		[clearEditorPaint, getPaintId],
 	);
 
 	const loadPagePaint = useCallback(
@@ -83,7 +93,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 			const paintId = getPaintId(Number(editorId), pageIndex);
 			console.log(`Save Paint: ${paintId}`);
 			try {
-				localStorage.setItem(paintId, JSON.stringify(editor.store.getStoreSnapshot()));
+				localStorage.setItem(paintId, JSON.stringify(editor.getSnapshot()));
 			} catch {
 				console.log(`Failed to save paint: ${paintId}`);
 			}
@@ -131,6 +141,9 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 		(editorId: number, editor: Editor) => {
 			editor.updateInstanceState({
 				isDebugMode: false,
+			});
+			editor.setCameraOptions({
+				isLocked: true,
 			});
 			if (editorId in editors.current) {
 				editors.current[editorId] = editor;
@@ -247,7 +260,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 				<div>
 					{pdfViewerController.getPageIndex() + 1}/{pdfViewerController.getPageCount()}
 				</div>
-				<div>{(pdfViewerController.getRenderOptions().scale * 100).toFixed()}%</div>
+				<div>{Math.round(pdfViewerController.getRenderOptions().scale * 100)}%</div>
 				<button onClick={pdfViewerController.moveToNextPage}>{">"}</button>
 			</div>
 		</div>
