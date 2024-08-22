@@ -93,6 +93,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 			const paintId = getPaintId(Number(editorId), pageIndex);
 			console.log(`Save Paint: ${paintId}`);
 			try {
+				editor.selectNone();
 				localStorage.setItem(paintId, JSON.stringify(editor.getSnapshot()));
 			} catch {
 				console.log(`Failed to save paint: ${paintId}`);
@@ -122,13 +123,16 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 
 	useEffect(() => {
 		console.log("Update Camera");
-		const { baseX, baseY, scale } = pdfViewerController.getRenderOptions();
+		const { width, height, baseX, baseY, scale } = pdfViewerController.getRenderOptions();
+		const pdfRenderScaleX = width / (pdfViewerController.getPage()?.originalWidth || 0) || 1;
+		const pdfRenderScaleY = height / (pdfViewerController.getPage()?.originalHeight || 0) || 1;
+		const pdfRenderScale = (pdfRenderScaleX + pdfRenderScaleY) / 2;
 		for (const editor of Object.values(editors.current)) {
 			editor.setCamera(
 				{
-					x: -baseX,
-					y: -baseY,
-					z: scale,
+					x: -baseX / pdfRenderScale,
+					y: -baseY / pdfRenderScale,
+					z: scale * pdfRenderScale,
 				},
 				{
 					force: true,
