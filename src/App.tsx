@@ -8,8 +8,9 @@ export default function App() {
 		<div
 			style={{
 				display: "flex",
-				width: "80vw",
-				height: "80vh",
+				flexDirection: "column",
+				width: "100vw",
+				height: "100vh",
 				justifyContent: "center",
 				alignItems: "center",
 			}}
