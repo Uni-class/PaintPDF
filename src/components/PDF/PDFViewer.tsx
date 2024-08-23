@@ -12,13 +12,13 @@ const PDFViewer = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL
 			ref={pdfRendererElement}
 			style={{
 				cursor: pdfViewerController.isDragModeEnabled() ? "move" : "default",
-				userSelect: pdfViewerController.isDragModeEnabled() ? "none" : "unset",
 			}}
 		>
 			<PDFRenderer
 				pdfDocumentURL={pdfDocumentURL}
 				pdfPageIndex={pdfViewerController.getPageIndex()}
 				pdfRenderOptions={pdfViewerController.getRenderOptions()}
+				pdfInteractionEnabled={!pdfViewerController.isDragModeEnabled()}
 				onPdfDocumentChange={onPdfDocumentChange}
 				onPdfPageChange={onPdfPageChange}
 			/>

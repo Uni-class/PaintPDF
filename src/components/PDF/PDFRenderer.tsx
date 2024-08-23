@@ -12,12 +12,14 @@ const PDFRenderer = ({
 		baseY: 0,
 		scale: 1,
 	},
+	pdfInteractionEnabled = true,
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
 }: {
 	pdfDocumentURL: string;
 	pdfPageIndex?: number;
 	pdfRenderOptions?: PDFRenderOptions;
+	pdfInteractionEnabled?: boolean;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
 }) => {
@@ -27,6 +29,8 @@ const PDFRenderer = ({
 				width: pdfRenderOptions.width,
 				height: pdfRenderOptions.height,
 				overflow: "hidden",
+				userSelect: pdfInteractionEnabled ? "unset" : "none",
+				pointerEvents: pdfInteractionEnabled ? "unset" : "none",
 			}}
 		>
 			<div
