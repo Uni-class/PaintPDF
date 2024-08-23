@@ -222,11 +222,11 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 								>
 									{cloneElement(
 										element as ReactElement<{
-											paintEnabled?: boolean;
+											readOnly?: boolean;
 											onEditorLoad?: (editor: Editor) => void;
 										}>,
 										{
-											paintEnabled: paintMode === "draw",
+											readOnly: element.props.readOnly || paintMode !== "draw",
 											onEditorLoad: (editor: Editor) => {
 												editorLoadHandler(index, editor);
 												element.props.onEditorLoad(editor);

@@ -16,8 +16,8 @@ export default function App() {
 			}}
 		>
 			<PDFPainter pdfDocumentURL={TestDocument}>
-				<Painter onEditorLoad={(editor) => console.log("Painter Loaded! I am the Host Editor", editor)} />
-				<Painter onEditorLoad={(editor) => console.log("Painter Loaded! I am the Guest Editor", editor)} />
+				<Painter readOnly={true} onEditorLoad={(editor) => console.log("Painter Loaded! I am the Host Editor", editor)} />
+				<Painter readOnly={false} onEditorLoad={(editor) => console.log("Painter Loaded! I am the Guest Editor", editor)} />
 			</PDFPainter>
 		</div>
 	);

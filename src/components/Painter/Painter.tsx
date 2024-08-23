@@ -7,12 +7,12 @@ import "./Painter.css";
 const Painter = ({
 	width = "100%",
 	height = "100%",
-	paintEnabled = true,
+	readOnly = false,
 	onEditorLoad = () => {},
 }: {
 	width?: number | string;
 	height?: number | string;
-	paintEnabled?: boolean;
+	readOnly?: boolean;
 	onEditorLoad?: (editor: Editor) => void;
 }) => {
 	const components = useMemo<TLComponents>(
@@ -27,9 +27,10 @@ const Painter = ({
 			style={{
 				width: width,
 				height: height,
+				pointerEvents: readOnly ? "none" : "unset",
 			}}
 		>
-			<Tldraw onMount={onEditorLoad} hideUi={!paintEnabled} components={components}></Tldraw>
+			<Tldraw onMount={onEditorLoad} hideUi={readOnly} components={components}></Tldraw>
 		</div>
 	);
 };

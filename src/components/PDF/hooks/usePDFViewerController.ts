@@ -20,7 +20,7 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 			if (pdfPage === null) {
 				return;
 			}
-			const newScale = Math.max(scale, 1);
+			const newScale = scale;
 			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
 			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
 			const newRenderOptions = {
@@ -103,7 +103,10 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 					return;
 				}
 				const { baseX, baseY, scale } = renderOptions;
-				const newScale = Math.max(Number((scale * (1 + scaleDelta)).toFixed(2)), 1);
+				const newScale = Math.max(Math.min(Number((scale * (1 + scaleDelta)).toFixed(2)), 10), 1);
+				if (scale === newScale) {
+					return;
+				}
 				const pdfDocumentOffsetX = Math.max(Math.min(Math.round(baseX + offsetX / scale), Math.floor(pdfPage.originalWidth)), 0);
 				const pdfDocumentOffsetY = Math.max(Math.min(Math.round(baseY + offsetY / scale), Math.floor(pdfPage.originalHeight)), 0);
 				const scaledBaseX = pdfDocumentOffsetX - offsetX / newScale;
