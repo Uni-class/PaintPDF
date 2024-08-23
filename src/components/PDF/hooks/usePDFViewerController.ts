@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { PDFDocument, PDFPage, PDFRenderOptions, PDFRenderSize, PDFViewerControllerHook } from "../types";
+import { PDFDocument, type PDFItemClickHandlerArguments, PDFPage, PDFRenderOptions, PDFRenderSize, PDFViewerControllerHook } from "../types";
 
 const usePDFViewerController = (): PDFViewerControllerHook => {
 	const pdfRendererElement = useRef<HTMLDivElement | null>(null);
@@ -14,6 +14,7 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		scale: 1,
 	});
 	const [dragModeEnabled, setDragModeEnabled] = useState(false);
+	const [itemClickEnabled, setItemClickEnabled] = useState(true);
 
 	const setRenderOptions = useCallback(
 		({ width, height, baseX, baseY, scale }: PDFRenderOptions) => {
@@ -134,8 +135,14 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 					scale: renderOptions.scale,
 				});
 			},
+			isItemClickEnabled: () => {
+				return itemClickEnabled;
+			},
+			setItemClickEnabled: (enabled: boolean) => {
+				setItemClickEnabled(enabled);
+			},
 		};
-	}, [setRenderOptions, pdfDocument, pdfPage, pageIndex, renderOptions, dragModeEnabled]);
+	}, [setRenderOptions, pdfDocument, pdfPage, pageIndex, renderOptions, dragModeEnabled, itemClickEnabled]);
 
 	const keydownEventHandler = useCallback(
 		(event: KeyboardEvent) => {
@@ -209,11 +216,22 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		}
 	}, [mouseEventHandler]);
 
+	const itemClickHandler = useCallback(
+		({ pageIndex, destination }: PDFItemClickHandlerArguments) => {
+			console.log(`Target Page Index: ${pageIndex}`, destination);
+			if (itemClickEnabled) {
+				setPageIndex(pageIndex);
+			}
+		},
+		[itemClickEnabled],
+	);
+
 	return {
 		pdfRendererElement: pdfRendererElement,
 		pdfViewerController: pdfViewerController,
 		onPdfDocumentChange: setPdfDocument,
 		onPdfPageChange: setPdfPage,
+		onPdfItemClick: itemClickHandler,
 	};
 };
 

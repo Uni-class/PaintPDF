@@ -1,6 +1,8 @@
 import { memo } from "react";
 import BasePDFRenderer from "./BasePDFRenderer";
-import type { PDFDocument, PDFPage, PDFRenderOptions } from "./types";
+import type { PDFDocument, PDFPage, PDFItemClickHandlerArguments, PDFRenderOptions } from "./types";
+
+import "./PDFRenderer.css";
 
 const PDFRenderer = ({
 	pdfDocumentURL,
@@ -13,15 +15,19 @@ const PDFRenderer = ({
 		scale: 1,
 	},
 	pdfInteractionEnabled = true,
+	pdfItemClickEnabled = true,
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
+	onPdfItemClick = () => {},
 }: {
 	pdfDocumentURL: string;
 	pdfPageIndex?: number;
 	pdfRenderOptions?: PDFRenderOptions;
 	pdfInteractionEnabled?: boolean;
+	pdfItemClickEnabled?: boolean;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
+	onPdfItemClick?: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
 }) => {
 	return (
 		<div
@@ -31,6 +37,7 @@ const PDFRenderer = ({
 				overflow: "hidden",
 				userSelect: pdfInteractionEnabled ? "unset" : "none",
 				pointerEvents: pdfInteractionEnabled ? "unset" : "none",
+				["--annotation-pointer-events" as any]: pdfInteractionEnabled && pdfItemClickEnabled ? "auto" : "none",
 			}}
 		>
 			<div
@@ -46,6 +53,7 @@ const PDFRenderer = ({
 					pdfRenderScale={pdfRenderOptions.scale}
 					onPdfDocumentChange={onPdfDocumentChange}
 					onPdfPageChange={onPdfPageChange}
+					onPdfItemClick={onPdfItemClick}
 				/>
 			</div>
 		</div>

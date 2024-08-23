@@ -1,6 +1,6 @@
 import { useCallback, useMemo, memo, ReactNode } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
-import type { PDFDocument, PDFPage } from "./types";
+import type { PDFDocument, PDFPage, PDFItemClickHandlerArguments } from "./types";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -15,6 +15,7 @@ const BasePDFRenderer = ({
 	pdfRenderScale,
 	onPdfDocumentChange = () => {},
 	onPdfPageChange = () => {},
+	onPdfItemClick = () => {},
 }: {
 	pdfDocumentURL: string;
 	pdfPageIndex: number;
@@ -23,6 +24,7 @@ const BasePDFRenderer = ({
 	pdfRenderScale: number;
 	onPdfDocumentChange?: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange?: (pdfPage: PDFPage | null) => void;
+	onPdfItemClick?: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
 }) => {
 	const onPdfDocumentLoadSuccess = useCallback(
 		(pdfDocument: PDFDocument) => {
@@ -52,6 +54,22 @@ const BasePDFRenderer = ({
 			onPdfPageChange(null);
 		},
 		[onPdfPageChange],
+	);
+
+	const onPdfItemClickHandler = useCallback(
+		({ pageIndex, dest }: { pageIndex: number; dest?: unknown }) => {
+			if (Array.isArray(dest)) {
+				onPdfItemClick({
+					pageIndex: pageIndex,
+					destination: dest,
+				});
+			} else {
+				onPdfItemClick({
+					pageIndex: pageIndex,
+				});
+			}
+		},
+		[onPdfItemClick],
 	);
 
 	const createFallback = useCallback(
@@ -98,7 +116,7 @@ const BasePDFRenderer = ({
 	}, [createFallback]);
 
 	return (
-		<Document file={pdfDocumentURL} onLoadSuccess={onPdfDocumentLoadSuccess} onLoadError={onPdfDocumentLoadError}>
+		<Document file={pdfDocumentURL} onLoadSuccess={onPdfDocumentLoadSuccess} onLoadError={onPdfDocumentLoadError} onItemClick={onPdfItemClickHandler}>
 			<Page
 				loading={loadingComponent}
 				error={errorComponent}

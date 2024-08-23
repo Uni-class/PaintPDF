@@ -18,6 +18,11 @@ export type PDFRenderOptions = {
 	scale: number;
 };
 
+export type PDFItemClickHandlerArguments = {
+	pageIndex: number;
+	destination?: unknown[];
+};
+
 export type PDFRenderSize = {
 	width: number;
 	height: number;
@@ -39,6 +44,8 @@ export type PDFViewerController = {
 	isDragModeEnabled: () => boolean;
 	setDragModeEnabled: (enabled: boolean) => void;
 	drag: ({ deltaX, deltaY }: { deltaX: number; deltaY: number }) => void;
+	isItemClickEnabled: () => boolean;
+	setItemClickEnabled: (enabled: boolean) => void;
 };
 
 export type PDFViewerControllerHook = {
@@ -46,6 +53,7 @@ export type PDFViewerControllerHook = {
 	pdfViewerController: PDFViewerController;
 	onPdfDocumentChange: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange: (pdfPage: PDFPage | null) => void;
+	onPdfItemClick: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
 };
 
 export type PaintMode = "default" | "move" | "draw";

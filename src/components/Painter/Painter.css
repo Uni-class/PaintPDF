@@ -8,7 +8,7 @@ body {
 }
 
 [class^="tl-"] {
-	pointer-events: inherit;
+	pointer-events: inherit !important;
 }
 
 .tl-theme__light {
