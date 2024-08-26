@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, MouseEventHandler, WheelEventHandler } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { PDFDocument, PDFPage, PDFRenderOptions, PDFRenderSize, PDFItemClickHandlerArguments, PDFViewerControllerHook } from "../types";
 
 const usePDFViewerController = (): PDFViewerControllerHook => {
@@ -183,11 +183,12 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		return () => document.removeEventListener("keydown", keydownEventHandler);
 	}, [keydownEventHandler]);
 
-	const mouseMoveEventHandler: MouseEventHandler = useCallback(
-		(event) => {
+	const mouseMoveEventHandler = useCallback(
+		(event: MouseEvent) => {
 			if (!dragModeEnabled) {
 				return;
 			}
+			event.preventDefault();
 			if (event.buttons === 1) {
 				console.log(event.movementX, event.movementY);
 				pdfViewerController.drag({
@@ -199,12 +200,13 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		[dragModeEnabled, pdfViewerController],
 	);
 
-	const wheelEventHandler: WheelEventHandler = useCallback(
-		(event) => {
+	const wheelEventHandler = useCallback(
+		(event: WheelEvent) => {
+			event.preventDefault();
 			const targetRect = (event.target as HTMLDivElement).getBoundingClientRect();
 			const currentTargetRect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
-			const offsetX = Math.round(event.nativeEvent.offsetX + targetRect.left - currentTargetRect.left);
-			const offsetY = Math.round(event.nativeEvent.offsetY + targetRect.top - currentTargetRect.top);
+			const offsetX = Math.round(event.offsetX + targetRect.left - currentTargetRect.left);
+			const offsetY = Math.round(event.offsetY + targetRect.top - currentTargetRect.top);
 			const wheelDelta = event.deltaX + event.deltaY + event.deltaZ > 0 ? -1 : 1;
 			const scaleRatio = 0.2;
 			pdfViewerController.zoom({

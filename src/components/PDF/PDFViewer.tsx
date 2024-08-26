@@ -1,20 +1,36 @@
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import PDFRenderer from "./PDFRenderer";
 import usePDFViewerController from "./hooks/usePDFViewerController.ts";
 import type { PDFViewerControllerHook } from "./types";
 
 const PDFViewer = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL: string; pdfViewerControllerHook?: PDFViewerControllerHook }) => {
+	const pdfRendererElement = useRef<HTMLDivElement | null>(null);
 	const defaultPdfViewerControllerHook = usePDFViewerController();
 	const { pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick, onPdfMouseMoveEvent, onPdfWheelEvent } =
 		pdfViewerControllerHook || defaultPdfViewerControllerHook;
 
+	useEffect(() => {
+		if (pdfRendererElement.current) {
+			const element = pdfRendererElement.current;
+			element.addEventListener("mousemove", onPdfMouseMoveEvent);
+			return () => element.removeEventListener("mousemove", onPdfMouseMoveEvent);
+		}
+	}, [onPdfMouseMoveEvent]);
+
+	useEffect(() => {
+		if (pdfRendererElement.current) {
+			const element = pdfRendererElement.current;
+			element.addEventListener("wheel", onPdfWheelEvent);
+			return () => element.removeEventListener("wheel", onPdfWheelEvent);
+		}
+	}, [onPdfWheelEvent]);
+
 	return (
 		<div
+			ref={pdfRendererElement}
 			style={{
 				cursor: pdfViewerController.isDragModeEnabled() ? "move" : "default",
 			}}
-			onMouseMove={onPdfMouseMoveEvent}
-			onWheel={onPdfWheelEvent}
 		>
 			<PDFRenderer
 				pdfDocumentURL={pdfDocumentURL}
