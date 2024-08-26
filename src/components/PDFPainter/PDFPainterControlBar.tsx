@@ -5,6 +5,7 @@ import ToolHandIcon from "../../assets/icons/tool-hand.svg";
 import ToolEditIcon from "../../assets/icons/tool-edit.svg";
 import ArrowLeftIcon from "../../assets/icons/arrow-left.svg";
 import ArrowRightIcon from "../../assets/icons/arrow-right.svg";
+import PDFPainterControlBarButton from "./PDFPainterControlBarButton.tsx";
 
 const PDFPainterControlBar = ({ pdfPainterController }: { pdfPainterController: PDFPainterController }) => {
 	useEffect(() => {
@@ -23,25 +24,30 @@ const PDFPainterControlBar = ({ pdfPainterController }: { pdfPainterController: 
 				gap: "1em",
 			}}
 		>
-			<button disabled={pdfPainterController.getPaintMode() === "default"} onClick={() => pdfPainterController.setPaintMode("default")}>
-				<img src={ToolPointerIcon} alt={"기본"} />
-			</button>
-			<button disabled={pdfPainterController.getPaintMode() === "move"} onClick={() => pdfPainterController.setPaintMode("move")}>
-				<img src={ToolHandIcon} alt={"이동"} />
-			</button>
-			<button disabled={pdfPainterController.getPaintMode() === "draw"} onClick={() => pdfPainterController.setPaintMode("draw")}>
-				<img src={ToolEditIcon} alt={"그리기"} />
-			</button>
-			<button onClick={pdfPainterController.moveToPreviousPage}>
-				<img src={ArrowLeftIcon} alt={"이전 페이지"} />
-			</button>
+			<PDFPainterControlBarButton
+				onClick={() => pdfPainterController.setPaintMode("default")}
+				disabled={pdfPainterController.getPaintMode() === "default"}
+				icon={ToolPointerIcon}
+				alt={"기본"}
+			/>
+			<PDFPainterControlBarButton
+				onClick={() => pdfPainterController.setPaintMode("move")}
+				disabled={pdfPainterController.getPaintMode() === "move"}
+				icon={ToolHandIcon}
+				alt={"이동"}
+			/>
+			<PDFPainterControlBarButton
+				onClick={() => pdfPainterController.setPaintMode("draw")}
+				disabled={pdfPainterController.getPaintMode() === "draw"}
+				icon={ToolEditIcon}
+				alt={"그리기"}
+			/>
+			<PDFPainterControlBarButton onClick={pdfPainterController.moveToPreviousPage} disabled={!pdfPainterController.hasPreviousPage()} icon={ArrowLeftIcon} alt={"이전 페이지"} />
 			<div>
 				{pdfPainterController.getPageIndex() + 1}/{pdfPainterController.getPageCount()}
 			</div>
 			<div>{Math.round(pdfPainterController.getRenderOptions().scale * 100)}%</div>
-			<button onClick={pdfPainterController.moveToNextPage}>
-				<img src={ArrowRightIcon} alt={"다음 페이지"} />
-			</button>
+			<PDFPainterControlBarButton onClick={pdfPainterController.moveToNextPage} disabled={!pdfPainterController.hasNextPage()} icon={ArrowRightIcon} alt={"다음 페이지"} />
 		</div>
 	);
 };

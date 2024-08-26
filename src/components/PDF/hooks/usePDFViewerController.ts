@@ -73,11 +73,23 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 			setPageIndex: (pageIndex: number) => {
 				setPageIndex(pageIndex);
 			},
+			hasPreviousPage: () => {
+				if (pdfDocument === null) {
+					return false;
+				}
+				return pageIndex > 0;
+			},
 			moveToPreviousPage: () => {
 				if (pdfDocument === null) {
 					return;
 				}
 				setPageIndex(Math.max(pageIndex - 1, 0));
+			},
+			hasNextPage: () => {
+				if (pdfDocument === null) {
+					return false;
+				}
+				return pageIndex < pdfDocument.numPages - 1;
 			},
 			moveToNextPage: () => {
 				if (pdfDocument === null) {
