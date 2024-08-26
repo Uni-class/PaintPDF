@@ -32,38 +32,32 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		});
 	}, []);
 
-	const setRenderOptions = useCallback(
-		({ width, height, baseX, baseY, scale }: PDFRenderOptions) => {
-			if (pdfPage === null) {
-				return;
+	const setRenderOptions = useCallback(({ width, height, baseX, baseY, scale }: PDFRenderOptions) => {
+		const newScale = scale;
+		const newBaseX = Math.max(Math.min(width * (1 - 1 / newScale), baseX), 0);
+		const newBaseY = Math.max(Math.min(height * (1 - 1 / newScale), baseY), 0);
+		const newRenderOptions = {
+			width: width,
+			height: height,
+			baseX: newBaseX,
+			baseY: newBaseY,
+			scale: newScale,
+		};
+		setRawRenderOptions((renderOptions) => {
+			if (
+				renderOptions.width !== newRenderOptions.width ||
+				renderOptions.height !== newRenderOptions.height ||
+				renderOptions.baseX !== newRenderOptions.baseX ||
+				renderOptions.baseY !== newRenderOptions.baseY ||
+				renderOptions.scale !== newRenderOptions.scale
+			) {
+				return newRenderOptions;
+			} else {
+				console.log("ignore render update");
+				return renderOptions;
 			}
-			const newScale = scale;
-			const newBaseX = Math.max(Math.min(pdfPage.originalWidth * (1 - 1 / newScale), baseX), 0);
-			const newBaseY = Math.max(Math.min(pdfPage.originalHeight * (1 - 1 / newScale), baseY), 0);
-			const newRenderOptions = {
-				width: width,
-				height: height,
-				baseX: newBaseX,
-				baseY: newBaseY,
-				scale: newScale,
-			};
-			setRawRenderOptions((renderOptions) => {
-				if (
-					renderOptions.width !== newRenderOptions.width ||
-					renderOptions.height !== newRenderOptions.height ||
-					renderOptions.baseX !== newRenderOptions.baseX ||
-					renderOptions.baseY !== newRenderOptions.baseY ||
-					renderOptions.scale !== newRenderOptions.scale
-				) {
-					return newRenderOptions;
-				} else {
-					console.log("ignore render update");
-					return renderOptions;
-				}
-			});
-		},
-		[pdfPage],
-	);
+		});
+	}, []);
 
 	const pdfViewerController = useMemo(() => {
 		return {
@@ -116,21 +110,18 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 				});
 			},
 			zoom: ({ offsetX, offsetY, scaleDelta }: { offsetX: number; offsetY: number; scaleDelta: number }) => {
-				if (pdfPage === null) {
-					return;
-				}
-				const { baseX, baseY, scale } = renderOptions;
+				const { width, height, baseX, baseY, scale } = renderOptions;
 				const newScale = Math.max(Math.min(Number((scale * (1 + scaleDelta)).toFixed(2)), 10), 1);
 				if (scale === newScale) {
 					return;
 				}
-				const pdfDocumentOffsetX = Math.max(Math.min(Math.round(baseX + offsetX / scale), Math.floor(pdfPage.originalWidth)), 0);
-				const pdfDocumentOffsetY = Math.max(Math.min(Math.round(baseY + offsetY / scale), Math.floor(pdfPage.originalHeight)), 0);
+				const pdfDocumentOffsetX = Math.max(Math.min(Math.round(baseX + offsetX / scale), Math.floor(width)), 0);
+				const pdfDocumentOffsetY = Math.max(Math.min(Math.round(baseY + offsetY / scale), Math.floor(height)), 0);
 				const scaledBaseX = pdfDocumentOffsetX - offsetX / newScale;
 				const scaledBaseY = pdfDocumentOffsetY - offsetY / newScale;
 				setRenderOptions({
-					width: renderOptions.width,
-					height: renderOptions.height,
+					width: width,
+					height: height,
 					baseX: scaledBaseX,
 					baseY: scaledBaseY,
 					scale: newScale,
