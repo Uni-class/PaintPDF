@@ -5,6 +5,7 @@ const PDFPainterControlBarButton = ({ onClick, disabled, icon, alt }: { onClick?
 		<button
 			style={{
 				padding: "0.4em 0.8em",
+				userSelect: "none",
 			}}
 			onClick={onClick}
 			disabled={disabled}

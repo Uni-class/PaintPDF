@@ -204,11 +204,12 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 					<PDFViewer
 						pdfDocumentURL={pdfDocumentURL}
 						pdfViewerControllerHook={{
-							pdfRendererElement: pdfPainterControllerHook.pdfRendererElement,
 							pdfViewerController: pdfPainterControllerHook.pdfPainterController,
 							onPdfDocumentChange: pdfPainterControllerHook.onPdfDocumentChange,
 							onPdfPageChange: pdfPainterControllerHook.onPdfPageChange,
 							onPdfItemClick: pdfPainterControllerHook.onPdfItemClick,
+							onPdfMouseMoveEvent: pdfPainterControllerHook.onPdfMouseMoveEvent,
+							onPdfWheelEvent: pdfPainterControllerHook.onPdfWheelEvent,
 						}}
 					/>
 					{Children.toArray(children).map((element: ReactNode, index: number) => {

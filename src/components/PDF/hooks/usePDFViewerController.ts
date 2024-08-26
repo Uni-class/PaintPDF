@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, MouseEventHandler, WheelEventHandler } from "react";
 import type { PDFDocument, PDFPage, PDFRenderOptions, PDFRenderSize, PDFItemClickHandlerArguments, PDFViewerControllerHook } from "../types";
 
 const usePDFViewerController = (): PDFViewerControllerHook => {
-	const pdfRendererElement = useRef<HTMLDivElement | null>(null);
 	const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null);
 	const [pdfPage, setPdfPage] = useState<PDFPage | null>(null);
 	const [pageIndex, setRawPageIndex] = useState<number>(0);
@@ -184,38 +183,11 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		return () => document.removeEventListener("keydown", keydownEventHandler);
 	}, [keydownEventHandler]);
 
-	const wheelEventHandler = useCallback(
-		(event: WheelEvent) => {
-			event.preventDefault();
-			const targetRect = (event.target as HTMLDivElement).getBoundingClientRect();
-			const currentTargetRect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
-			const offsetX = Math.round(event.offsetX + targetRect.left - currentTargetRect.left);
-			const offsetY = Math.round(event.offsetY + targetRect.top - currentTargetRect.top);
-			const wheelDelta = event.deltaX + event.deltaY + event.deltaZ > 0 ? -1 : 1;
-			const scaleRatio = 0.2;
-			pdfViewerController.zoom({
-				offsetX: offsetX,
-				offsetY: offsetY,
-				scaleDelta: wheelDelta * scaleRatio,
-			});
-		},
-		[pdfViewerController],
-	);
-
-	useEffect(() => {
-		if (pdfRendererElement.current) {
-			const element = pdfRendererElement.current;
-			element.addEventListener("wheel", wheelEventHandler);
-			return () => element.removeEventListener("wheel", wheelEventHandler);
-		}
-	}, [wheelEventHandler]);
-
-	const mouseEventHandler = useCallback(
-		(event: MouseEvent) => {
+	const mouseMoveEventHandler: MouseEventHandler = useCallback(
+		(event) => {
 			if (!dragModeEnabled) {
 				return;
 			}
-			event.preventDefault();
 			if (event.buttons === 1) {
 				console.log(event.movementX, event.movementY);
 				pdfViewerController.drag({
@@ -227,13 +199,22 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		[dragModeEnabled, pdfViewerController],
 	);
 
-	useEffect(() => {
-		if (pdfRendererElement.current) {
-			const element = pdfRendererElement.current;
-			element.addEventListener("mousemove", mouseEventHandler);
-			return () => element.removeEventListener("mousemove", mouseEventHandler);
-		}
-	}, [mouseEventHandler]);
+	const wheelEventHandler: WheelEventHandler = useCallback(
+		(event) => {
+			const targetRect = (event.target as HTMLDivElement).getBoundingClientRect();
+			const currentTargetRect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
+			const offsetX = Math.round(event.nativeEvent.offsetX + targetRect.left - currentTargetRect.left);
+			const offsetY = Math.round(event.nativeEvent.offsetY + targetRect.top - currentTargetRect.top);
+			const wheelDelta = event.deltaX + event.deltaY + event.deltaZ > 0 ? -1 : 1;
+			const scaleRatio = 0.2;
+			pdfViewerController.zoom({
+				offsetX: offsetX,
+				offsetY: offsetY,
+				scaleDelta: wheelDelta * scaleRatio,
+			});
+		},
+		[pdfViewerController],
+	);
 
 	const itemClickHandler = useCallback(
 		({ pageIndex, destination }: PDFItemClickHandlerArguments) => {
@@ -246,11 +227,12 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 	);
 
 	return {
-		pdfRendererElement: pdfRendererElement,
 		pdfViewerController: pdfViewerController,
 		onPdfDocumentChange: setPdfDocument,
 		onPdfPageChange: setPdfPage,
 		onPdfItemClick: itemClickHandler,
+		onPdfMouseMoveEvent: mouseMoveEventHandler,
+		onPdfWheelEvent: wheelEventHandler,
 	};
 };
 

@@ -5,14 +5,16 @@ import type { PDFViewerControllerHook } from "./types";
 
 const PDFViewer = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL: string; pdfViewerControllerHook?: PDFViewerControllerHook }) => {
 	const defaultPdfViewerControllerHook = usePDFViewerController();
-	const { pdfRendererElement, pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick } = pdfViewerControllerHook || defaultPdfViewerControllerHook;
+	const { pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick, onPdfMouseMoveEvent, onPdfWheelEvent } =
+		pdfViewerControllerHook || defaultPdfViewerControllerHook;
 
 	return (
 		<div
-			ref={pdfRendererElement}
 			style={{
 				cursor: pdfViewerController.isDragModeEnabled() ? "move" : "default",
 			}}
+			onMouseMove={onPdfMouseMoveEvent}
+			onWheel={onPdfWheelEvent}
 		>
 			<PDFRenderer
 				pdfDocumentURL={pdfDocumentURL}

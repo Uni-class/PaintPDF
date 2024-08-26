@@ -1,5 +1,5 @@
 import { pdfjs } from "react-pdf";
-import { MutableRefObject } from "react";
+import { MouseEventHandler, WheelEventHandler } from "react";
 
 export type PDFDocument = pdfjs.PDFDocumentProxy;
 
@@ -51,9 +51,10 @@ export type PDFViewerController = {
 };
 
 export type PDFViewerControllerHook = {
-	pdfRendererElement: MutableRefObject<HTMLDivElement | null>;
 	pdfViewerController: PDFViewerController;
 	onPdfDocumentChange: (pdfDocument: PDFDocument | null) => void;
 	onPdfPageChange: (pdfPage: PDFPage | null) => void;
 	onPdfItemClick: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
+	onPdfMouseMoveEvent: MouseEventHandler;
+	onPdfWheelEvent: WheelEventHandler;
 };
