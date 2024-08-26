@@ -1,7 +1,7 @@
 import PDFPainter from "./components/PDFPainter/PDFPainter.tsx";
 import Painter from "./components/Painter/Painter.tsx";
 
-import TestDocument from "./assets/test.pdf";
+import TestDocument from "./assets/examples/test2.pdf";
 
 export default function App() {
 	return (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, ReactNode, ReactElement } from "react";
 import { Editor } from "tldraw";
 import PDFViewer from "../PDF/PDFViewer.tsx";
-import CleanPainterSnapshot from "../../assets/snapshot.json";
+import CleanPainterSnapshot from "../../assets/data/snapshot.json";
 import { PDFRenderSize } from "../PDF/types";
 import usePDFPainterController from "./hooks/usePDFPainterController.ts";
 import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
