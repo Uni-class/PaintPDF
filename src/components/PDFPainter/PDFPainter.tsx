@@ -1,22 +1,22 @@
-import { useState, useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, ReactNode, ReactElement } from "react";
+import { useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, ReactNode, ReactElement } from "react";
 import { Editor } from "tldraw";
-import PDFViewer from "./PDF/PDFViewer";
-import CleanPainterSnapshot from "../assets/snapshot.json";
-import type { PDFRenderSize, PaintMode } from "./PDF/types";
-import usePDFViewerController from "./PDF/hooks/usePDFViewerController.ts";
+import PDFViewer from "../PDF/PDFViewer.tsx";
+import CleanPainterSnapshot from "../../assets/snapshot.json";
+import { PDFRenderSize } from "../PDF/types";
+import usePDFPainterController from "./hooks/usePDFPainterController.ts";
+import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
 
 const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; children?: ReactNode }) => {
 	const painterElement = useRef<HTMLDivElement | null>(null);
 
-	const pdfViewerControllerHook = usePDFViewerController();
-	const { pdfViewerController } = pdfViewerControllerHook;
+	const pdfPainterControllerHook = usePDFPainterController();
+	const { pdfPainterController } = pdfPainterControllerHook;
 
 	const currentPageId = useRef<number | null>(null);
 	const editors = useRef<{ [editorId: number]: Editor }>({});
-	const [paintMode, setPaintMode] = useState<PaintMode>("default");
 
 	const updateDisplaySize = useCallback(() => {
-		const currentPdfPage = pdfViewerController.getPage();
+		const currentPdfPage = pdfPainterController.getPage();
 		if (painterElement.current && currentPdfPage) {
 			const elementWidth = painterElement.current.offsetWidth;
 			const elementHeight = painterElement.current.offsetHeight;
@@ -36,12 +36,12 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 					height: elementHeight,
 				};
 			}
-			const currentDisplaySize = pdfViewerController.getRenderSize();
+			const currentDisplaySize = pdfPainterController.getRenderSize();
 			if (newDisplaySize.width !== currentDisplaySize.width || newDisplaySize.height !== currentDisplaySize.height) {
-				pdfViewerController.setRenderSize(newDisplaySize);
+				pdfPainterController.setRenderSize(newDisplaySize);
 			}
 		}
-	}, [pdfViewerController]);
+	}, [pdfPainterController]);
 
 	const getPaintId = useCallback(
 		(editorId: number, pdfPageIndex: number) => {
@@ -112,20 +112,20 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 	);
 
 	useEffect(() => {
-		if (currentPageId.current !== pdfViewerController.getPageIndex()) {
+		if (currentPageId.current !== pdfPainterController.getPageIndex()) {
 			if (currentPageId.current !== null) {
 				savePagePaint(currentPageId.current);
 			}
-			currentPageId.current = pdfViewerController.getPageIndex();
+			currentPageId.current = pdfPainterController.getPageIndex();
 			loadPagePaint(currentPageId.current);
 		}
-	}, [pdfViewerController, loadPagePaint, savePagePaint]);
+	}, [pdfPainterController, loadPagePaint, savePagePaint]);
 
 	useEffect(() => {
 		console.log("Update Camera");
-		const { width, height, baseX, baseY, scale } = pdfViewerController.getRenderOptions();
-		const pdfRenderScaleX = width / (pdfViewerController.getPage()?.originalWidth || 0) || 1;
-		const pdfRenderScaleY = height / (pdfViewerController.getPage()?.originalHeight || 0) || 1;
+		const { width, height, baseX, baseY, scale } = pdfPainterController.getRenderOptions();
+		const pdfRenderScaleX = width / (pdfPainterController.getPage()?.originalWidth || 0) || 1;
+		const pdfRenderScaleY = height / (pdfPainterController.getPage()?.originalHeight || 0) || 1;
 		const pdfRenderScale = (pdfRenderScaleX + pdfRenderScaleY) / 2;
 		for (const editor of Object.values(editors.current)) {
 			editor.setCamera(
@@ -139,7 +139,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 				},
 			);
 		}
-	}, [pdfViewerController]);
+	}, [pdfPainterController]);
 
 	const editorLoadHandler = useCallback(
 		(editorId: number, editor: Editor) => {
@@ -175,10 +175,6 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 		};
 	}, [updateDisplaySize]);
 
-	useEffect(() => {
-		pdfViewerController.setDragModeEnabled(paintMode === "move");
-	}, [pdfViewerController, paintMode]);
-
 	return (
 		<div
 			style={{
@@ -205,7 +201,16 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 						height: "fit-content",
 					}}
 				>
-					<PDFViewer pdfDocumentURL={pdfDocumentURL} pdfViewerControllerHook={pdfViewerControllerHook} />
+					<PDFViewer
+						pdfDocumentURL={pdfDocumentURL}
+						pdfViewerControllerHook={{
+							pdfRendererElement: pdfPainterControllerHook.pdfRendererElement,
+							pdfViewerController: pdfPainterControllerHook.pdfPainterController,
+							onPdfDocumentChange: pdfPainterControllerHook.onPdfDocumentChange,
+							onPdfPageChange: pdfPainterControllerHook.onPdfPageChange,
+							onPdfItemClick: pdfPainterControllerHook.onPdfItemClick,
+						}}
+					/>
 					{Children.toArray(children).map((element: ReactNode, index: number) => {
 						if (isValidElement(element)) {
 							return (
@@ -215,9 +220,9 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 										position: "absolute",
 										top: 0,
 										left: 0,
-										width: pdfViewerController.getRenderSize().width,
-										height: pdfViewerController.getRenderSize().height,
-										pointerEvents: paintMode === "draw" ? "unset" : "none",
+										width: pdfPainterController.getRenderSize().width,
+										height: pdfPainterController.getRenderSize().height,
+										pointerEvents: pdfPainterController.getPaintMode() === "draw" ? "unset" : "none",
 									}}
 								>
 									{cloneElement(
@@ -226,7 +231,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 											onEditorLoad?: (editor: Editor) => void;
 										}>,
 										{
-											readOnly: element.props.readOnly || paintMode !== "draw",
+											readOnly: element.props.readOnly || pdfPainterController.getPaintMode() !== "draw",
 											onEditorLoad: (editor: Editor) => {
 												editorLoadHandler(index, editor);
 												element.props.onEditorLoad(editor);
@@ -240,33 +245,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 					})}
 				</div>
 			</div>
-			<div
-				style={{
-					display: "flex",
-					padding: "1em",
-					color: "#ffffff",
-					backgroundColor: "#aaaaaa",
-					justifyContent: "center",
-					alignItems: "center",
-					gap: "1em",
-				}}
-			>
-				<button disabled={paintMode === "default"} onClick={() => setPaintMode("default")}>
-					<img src={"https://cdn.tldraw.com/2.4.4/icons/icon/tool-pointer.svg"} alt={"기본"} />
-				</button>
-				<button disabled={paintMode === "move"} onClick={() => setPaintMode("move")}>
-					<img src={"https://cdn.tldraw.com/2.4.4/icons/icon/tool-hand.svg"} alt={"이동"} />
-				</button>
-				<button disabled={paintMode === "draw"} onClick={() => setPaintMode("draw")}>
-					<img src={"https://cdn.tldraw.com/2.4.4/icons/icon/tool-pencil.svg"} alt={"그리기"} />
-				</button>
-				<button onClick={pdfViewerController.moveToPreviousPage}>{"<"}</button>
-				<div>
-					{pdfViewerController.getPageIndex() + 1}/{pdfViewerController.getPageCount()}
-				</div>
-				<div>{Math.round(pdfViewerController.getRenderOptions().scale * 100)}%</div>
-				<button onClick={pdfViewerController.moveToNextPage}>{">"}</button>
-			</div>
+			<PDFPainterControlBar pdfPainterController={pdfPainterController} />
 		</div>
 	);
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { PDFDocument, type PDFItemClickHandlerArguments, PDFPage, PDFRenderOptions, PDFRenderSize, PDFViewerControllerHook } from "../types";
+import type { PDFDocument, PDFPage, PDFRenderOptions, PDFRenderSize, PDFItemClickHandlerArguments, PDFViewerControllerHook } from "../types";
 
 const usePDFViewerController = (): PDFViewerControllerHook => {
 	const pdfRendererElement = useRef<HTMLDivElement | null>(null);

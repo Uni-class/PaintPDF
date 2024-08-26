@@ -18,14 +18,14 @@ export type PDFRenderOptions = {
 	scale: number;
 };
 
-export type PDFItemClickHandlerArguments = {
-	pageIndex: number;
-	destination?: unknown[];
-};
-
 export type PDFRenderSize = {
 	width: number;
 	height: number;
+};
+
+export type PDFItemClickHandlerArguments = {
+	pageIndex: number;
+	destination?: unknown[];
 };
 
 export type PDFViewerController = {
@@ -55,5 +55,3 @@ export type PDFViewerControllerHook = {
 	onPdfPageChange: (pdfPage: PDFPage | null) => void;
 	onPdfItemClick: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
 };
-
-export type PaintMode = "default" | "move" | "draw";

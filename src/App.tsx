@@ -1,4 +1,4 @@
-import PDFPainter from "./components/PDFPainter";
+import PDFPainter from "./components/PDFPainter/PDFPainter.tsx";
 import Painter from "./components/Painter/Painter.tsx";
 
 import TestDocument from "./assets/test.pdf";
