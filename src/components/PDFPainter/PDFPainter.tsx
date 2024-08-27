@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, ReactNode, ReactElement } from "react";
 import { Editor } from "tldraw";
 import PDFViewer from "../PDF/PDFViewer.tsx";
-import CleanPainterSnapshot from "../../assets/data/snapshot.json";
 import { PDFRenderSize } from "../PDF/types";
 import usePDFPainterController from "./hooks/usePDFPainterController.ts";
 import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
@@ -9,11 +8,8 @@ import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
 const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; children?: ReactNode }) => {
 	const painterElement = useRef<HTMLDivElement | null>(null);
 
-	const pdfPainterControllerHook = usePDFPainterController();
+	const pdfPainterControllerHook = usePDFPainterController({ painterId: pdfDocumentURL });
 	const { pdfPainterController } = pdfPainterControllerHook;
-
-	const currentPageId = useRef<number | null>(null);
-	const editors = useRef<{ [editorId: number]: Editor }>({});
 
 	const updateDisplaySize = useCallback(() => {
 		const currentPdfPage = pdfPainterController.getPage();
@@ -42,124 +38,6 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 			}
 		}
 	}, [pdfPainterController]);
-
-	const getPaintId = useCallback(
-		(editorId: number, pdfPageIndex: number) => {
-			return `${pdfDocumentURL}_${editorId}_${pdfPageIndex}`;
-		},
-		[pdfDocumentURL],
-	);
-
-	const clearEditorPaint = useCallback((editor: Editor) => {
-		console.log("Reset Painter");
-		try {
-			editor.loadSnapshot(CleanPainterSnapshot as any);
-		} catch {
-			console.log(`Failed to reset painter.`);
-		}
-	}, []);
-
-	const loadEditorPagePaint = useCallback(
-		(pageIndex: number, editorId: string, editor: Editor) => {
-			const paintId = getPaintId(Number(editorId), pageIndex);
-			console.log(`Load Paint: ${paintId}`);
-			const snapShot = localStorage.getItem(paintId);
-			if (snapShot === null) {
-				console.log("Snapshot not found.");
-				clearEditorPaint(editor);
-			} else {
-				try {
-					editor.loadSnapshot(JSON.parse(snapShot));
-				} catch {
-					console.log(`Failed to load paint: ${paintId}`);
-					clearEditorPaint(editor);
-				}
-			}
-		},
-		[clearEditorPaint, getPaintId],
-	);
-
-	const loadPagePaint = useCallback(
-		(pageIndex: number) => {
-			for (const [editorId, editor] of Object.entries(editors.current)) {
-				loadEditorPagePaint(pageIndex, editorId, editor);
-			}
-		},
-		[loadEditorPagePaint],
-	);
-
-	const saveEditorPagePaint = useCallback(
-		(pageIndex: number, editorId: string, editor: Editor) => {
-			const paintId = getPaintId(Number(editorId), pageIndex);
-			console.log(`Save Paint: ${paintId}`);
-			try {
-				editor.selectNone();
-				localStorage.setItem(paintId, JSON.stringify(editor.getSnapshot()));
-			} catch {
-				console.log(`Failed to save paint: ${paintId}`);
-			}
-		},
-		[getPaintId],
-	);
-
-	const savePagePaint = useCallback(
-		(pageIndex: number) => {
-			for (const [editorId, editor] of Object.entries(editors.current)) {
-				saveEditorPagePaint(pageIndex, editorId, editor);
-			}
-		},
-		[saveEditorPagePaint],
-	);
-
-	useEffect(() => {
-		if (currentPageId.current !== pdfPainterController.getPageIndex()) {
-			if (currentPageId.current !== null) {
-				savePagePaint(currentPageId.current);
-			}
-			currentPageId.current = pdfPainterController.getPageIndex();
-			loadPagePaint(currentPageId.current);
-		}
-	}, [pdfPainterController, loadPagePaint, savePagePaint]);
-
-	useEffect(() => {
-		console.log("Update Camera");
-		const { width, height, baseX, baseY, scale } = pdfPainterController.getRenderOptions();
-		const pdfRenderScaleX = width / (pdfPainterController.getPage()?.originalWidth || 0) || 1;
-		const pdfRenderScaleY = height / (pdfPainterController.getPage()?.originalHeight || 0) || 1;
-		const pdfRenderScale = (pdfRenderScaleX + pdfRenderScaleY) / 2;
-		for (const editor of Object.values(editors.current)) {
-			editor.setCamera(
-				{
-					x: -baseX / pdfRenderScale,
-					y: -baseY / pdfRenderScale,
-					z: scale * pdfRenderScale,
-				},
-				{
-					force: true,
-				},
-			);
-		}
-	}, [pdfPainterController]);
-
-	const editorLoadHandler = useCallback(
-		(editorId: number, editor: Editor) => {
-			editor.updateInstanceState({
-				isDebugMode: false,
-			});
-			editor.setCameraOptions({
-				isLocked: true,
-			});
-			if (editorId in editors.current) {
-				editors.current[editorId] = editor;
-			} else {
-				editors.current[editorId] = editor;
-				if (currentPageId.current !== null) {
-					loadEditorPagePaint(currentPageId.current, String(editorId), editor);
-				}
-			}
-		},
-		[loadEditorPagePaint],
-	);
 
 	useEffect(() => {
 		const resizeObserver = new ResizeObserver(() => {
@@ -234,7 +112,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 										{
 											readOnly: element.props.readOnly || pdfPainterController.getPaintMode() !== "draw",
 											onEditorLoad: (editor: Editor) => {
-												editorLoadHandler(index, editor);
+												pdfPainterControllerHook.registerEditor(index, editor);
 												element.props.onEditorLoad(editor);
 											},
 										},
