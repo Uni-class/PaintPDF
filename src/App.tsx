@@ -15,7 +15,7 @@ export default function App() {
 				alignItems: "center",
 			}}
 		>
-			<PDFPainter pdfDocumentURL={TestDocument}>
+			<PDFPainter painterId={"Session123_File123"} pdfDocumentURL={TestDocument}>
 				<Painter readOnly={true} onEditorLoad={(editor) => console.log("Painter Loaded! I am the Host Editor", editor)} />
 				<Painter readOnly={false} onEditorLoad={(editor) => console.log("Painter Loaded! I am the Guest Editor", editor)} />
 			</PDFPainter>

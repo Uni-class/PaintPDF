@@ -5,10 +5,10 @@ import { PDFRenderSize } from "../PDF/types";
 import usePDFPainterController from "./hooks/usePDFPainterController.ts";
 import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
 
-const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; children?: ReactNode }) => {
+const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string; pdfDocumentURL: string; children?: ReactNode }) => {
 	const painterElement = useRef<HTMLDivElement | null>(null);
 
-	const pdfPainterControllerHook = usePDFPainterController({ painterId: pdfDocumentURL });
+	const pdfPainterControllerHook = usePDFPainterController({ painterId: painterId });
 	const { pdfPainterController } = pdfPainterControllerHook;
 
 	const updateDisplaySize = useCallback(() => {
@@ -112,7 +112,7 @@ const PDFPainter = ({ pdfDocumentURL, children }: { pdfDocumentURL: string; chil
 										{
 											readOnly: element.props.readOnly || pdfPainterController.getPaintMode() !== "draw",
 											onEditorLoad: (editor: Editor) => {
-												pdfPainterControllerHook.registerEditor(index, editor);
+												pdfPainterControllerHook.registerEditor(`Editor_${index}`, editor);
 												element.props.onEditorLoad(editor);
 											},
 										},
