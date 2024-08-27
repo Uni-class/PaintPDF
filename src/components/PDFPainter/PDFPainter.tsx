@@ -1,9 +1,11 @@
-import { useEffect, useRef, useCallback, memo, isValidElement, cloneElement, Children, ReactNode, ReactElement } from "react";
+import { useEffect, useRef, useCallback, memo, isValidElement, Children, ReactNode } from "react";
 import { Editor } from "tldraw";
 import PDFViewer from "../PDF/PDFViewer.tsx";
-import { PDFRenderSize } from "../PDF/types";
+import Painter from "../Painter/Painter.tsx";
 import usePDFPainterController from "./hooks/usePDFPainterController.ts";
 import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
+
+import { PDFRenderSize } from "../PDF/types";
 
 const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string; pdfDocumentURL: string; children?: ReactNode }) => {
 	const painterElement = useRef<HTMLDivElement | null>(null);
@@ -90,11 +92,11 @@ const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string
 							onPdfWheelEvent: pdfPainterControllerHook.onPdfWheelEvent,
 						}}
 					/>
-					{Children.toArray(children).map((element: ReactNode, index: number) => {
+					{Children.toArray(children).map((element: ReactNode) => {
 						if (isValidElement(element)) {
 							return (
 								<div
-									key={index}
+									key={element.props.instanceId}
 									style={{
 										position: "absolute",
 										top: 0,
@@ -104,19 +106,12 @@ const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string
 										pointerEvents: pdfPainterController.getPaintMode() === "draw" ? "unset" : "none",
 									}}
 								>
-									{cloneElement(
-										element as ReactElement<{
-											readOnly?: boolean;
-											onEditorLoad?: (editor: Editor) => void;
-										}>,
-										{
-											readOnly: element.props.readOnly || pdfPainterController.getPaintMode() !== "draw",
-											onEditorLoad: (editor: Editor) => {
-												pdfPainterControllerHook.registerEditor(`Editor_${index}`, editor);
-												element.props.onEditorLoad(editor);
-											},
-										},
-									)}
+									<Painter
+										readOnly={element.props.readOnly}
+										onEditorLoad={(editor: Editor) => {
+											pdfPainterControllerHook.registerEditor(element.props.instanceId, editor);
+										}}
+									/>
 								</div>
 							);
 						}

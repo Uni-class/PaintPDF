@@ -37,11 +37,14 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		(editorId: string, pageIndex: number): EditorSnapshot | null => {
 			const snapshotId = getSnapshotId(editorId, pageIndex);
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Get Editor Snapshot: ${snapshotId}`);
-			try {
-				return JSON.parse(localStorage.getItem(snapshotId) || "");
-			} catch (e) {
-				console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Invalid Snapshot: ${snapshotId}`);
-				console.log(e);
+			const data = localStorage.getItem(snapshotId);
+			if (data !== null) {
+				try {
+					return JSON.parse(data);
+				} catch (e) {
+					console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Invalid Snapshot: ${snapshotId}`);
+					console.log(e);
+				}
 			}
 			return null;
 		},
