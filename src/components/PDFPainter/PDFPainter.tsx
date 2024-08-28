@@ -1,16 +1,27 @@
 import { useEffect, useRef, useCallback, memo, isValidElement, Children, ReactNode } from "react";
-import { Editor } from "tldraw";
 import PDFViewer from "../PDF/PDFViewer.tsx";
-import Painter from "../Painter/Painter.tsx";
 import usePDFPainterController from "./hooks/usePDFPainterController.ts";
 import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
 
 import { PDFRenderSize } from "../PDF/types";
+import { PDFPainterControllerHook } from "@components/PDFPainter/types";
+import PainterInstance from "@components/PDFPainter/PainterInstance.tsx";
 
-const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string; pdfDocumentURL: string; children?: ReactNode }) => {
+const PDFPainter = ({
+	painterId,
+	pdfDocumentURL,
+	customPdfPainterControllerHook,
+	children,
+}: {
+	painterId: string;
+	pdfDocumentURL: string;
+	customPdfPainterControllerHook?: PDFPainterControllerHook;
+	children?: ReactNode;
+}) => {
 	const painterElement = useRef<HTMLDivElement | null>(null);
 
-	const pdfPainterControllerHook = usePDFPainterController({ painterId: painterId });
+	const defaultPdfPainterControllerHook = usePDFPainterController({ painterId: painterId });
+	const pdfPainterControllerHook = customPdfPainterControllerHook || defaultPdfPainterControllerHook;
 	const { pdfPainterController } = pdfPainterControllerHook;
 
 	const updateDisplaySize = useCallback(() => {
@@ -106,11 +117,10 @@ const PDFPainter = ({ painterId, pdfDocumentURL, children }: { painterId: string
 										pointerEvents: pdfPainterController.getPaintMode() === "draw" ? "unset" : "none",
 									}}
 								>
-									<Painter
-										readOnly={element.props.readOnly}
-										onEditorLoad={(editor: Editor) => {
-											pdfPainterControllerHook.registerEditor(element.props.instanceId, editor);
-										}}
+									<PainterInstance
+										instanceId={element.props.instanceId}
+										readOnly={element.props.readOnly || pdfPainterController.getPaintMode() !== "draw"}
+										pdfPainterControllerHook={pdfPainterControllerHook}
 									/>
 								</div>
 							);

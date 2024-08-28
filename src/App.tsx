@@ -1,5 +1,5 @@
 import PDFPainter from "./components/PDFPainter/PDFPainter.tsx";
-import PainterInstance from "@components/PDFPainter/PDFPainterInstance.tsx";
+import PainterInstanceGenerator from "@components/PDFPainter/PainterInstanceGenerator.tsx";
 
 import TestDocument from "@assets/examples/test.pdf";
 
@@ -16,8 +16,8 @@ export default function App() {
 			}}
 		>
 			<PDFPainter painterId={"Session123_File123"} pdfDocumentURL={TestDocument}>
-				<PainterInstance instanceId={"Host"} readOnly={true} />
-				<PainterInstance instanceId={"Guest"} readOnly={false} />
+				<PainterInstanceGenerator instanceId={"Host"} readOnly={true} />
+				<PainterInstanceGenerator instanceId={"Guest"} readOnly={false} />
 			</PDFPainter>
 		</div>
 	);

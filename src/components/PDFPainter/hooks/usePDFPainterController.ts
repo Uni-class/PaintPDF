@@ -33,7 +33,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		[painterId],
 	);
 
-	const getEditorSnapshot = useCallback(
+	const getEditorSnapshotFromStorage = useCallback(
 		(editorId: string, pageIndex: number): EditorSnapshot | null => {
 			const snapshotId = getSnapshotId(editorId, pageIndex);
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Get Editor Snapshot: ${snapshotId}`);
@@ -51,7 +51,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		[getSnapshotId],
 	);
 
-	const setEditorSnapshot = useCallback(
+	const setEditorSnapshotToStorage = useCallback(
 		(editorId: string, pageIndex: number, snapshot: EditorSnapshot) => {
 			const snapshotId = getSnapshotId(editorId, pageIndex);
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Set Editor Snapshot: ${snapshotId}`);
@@ -60,7 +60,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		[getSnapshotId],
 	);
 
-	const clearEditorSnapshot = useCallback(
+	const clearEditorSnapshotFromStorage = useCallback(
 		(editorId: string, pageIndex: number) => {
 			const snapshotId = getSnapshotId(editorId, pageIndex);
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Clear Editor Snapshot: ${snapshotId}`);
@@ -93,7 +93,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 			}
 			const snapshotId = getSnapshotId(editorId, pageIndex);
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Load snapshot: ${snapshotId}`);
-			const snapShot = getEditorSnapshot(editorId, pageIndex);
+			const snapShot = getEditorSnapshotFromStorage(editorId, pageIndex);
 			if (snapShot === null) {
 				console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Snapshot not found: ${snapshotId}`);
 				loadEmptySnapshot(editorId);
@@ -106,7 +106,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 				}
 			}
 		},
-		[getEditor, getSnapshotId, getEditorSnapshot, loadEmptySnapshot],
+		[getEditor, getSnapshotId, getEditorSnapshotFromStorage, loadEmptySnapshot],
 	);
 
 	const loadPageSnapshots = useCallback(
@@ -128,12 +128,12 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 			console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Save snapshot: ${snapshotId}`);
 			try {
 				editor.selectNone();
-				setEditorSnapshot(editorId, pageIndex, editor.getSnapshot());
+				setEditorSnapshotToStorage(editorId, pageIndex, editor.getSnapshot());
 			} catch {
 				console.log(`[Editor: ${editorId} - Page: ${pageIndex}] Unable to save snapshot: ${snapshotId}`);
 			}
 		},
-		[getEditor, getSnapshotId, setEditorSnapshot],
+		[getEditor, getSnapshotId, setEditorSnapshotToStorage],
 	);
 
 	const savePageSnapshots = useCallback(
@@ -201,6 +201,30 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		}
 	}, [pdfViewerController]);
 
+	const getEditorSnapshot = useCallback(
+		(editorId: string, pageIndex: number): EditorSnapshot | null => {
+			saveEditorSnapshot(editorId, pageIndex);
+			return getEditorSnapshotFromStorage(editorId, pageIndex);
+		},
+		[saveEditorSnapshot, getEditorSnapshotFromStorage],
+	);
+
+	const setEditorSnapshot = useCallback(
+		(editorId: string, pageIndex: number, snapshot: EditorSnapshot) => {
+			setEditorSnapshotToStorage(editorId, pageIndex, snapshot);
+			loadEditorSnapshot(editorId, pageIndex);
+		},
+		[loadEditorSnapshot, setEditorSnapshotToStorage],
+	);
+
+	const clearEditorSnapshot = useCallback(
+		(editorId: string, pageIndex: number) => {
+			clearEditorSnapshotFromStorage(editorId, pageIndex);
+			loadEditorSnapshot(editorId, pageIndex);
+		},
+		[loadEditorSnapshot, clearEditorSnapshotFromStorage],
+	);
+
 	const pdfPainterController: PDFPainterController = useMemo(() => {
 		return {
 			...pdfViewerController,
@@ -210,21 +234,30 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 			setPaintMode: (paintMode: PaintMode) => {
 				setPaintMode(paintMode);
 			},
+			registerEditor: registerEditor,
+			unregisterEditor: unregisterEditor,
+			getEditor: getEditor,
+			getEditorSnapshot: getEditorSnapshot,
+			setEditorSnapshot: setEditorSnapshot,
+			clearEditorSnapshot: clearEditorSnapshot,
 		};
-	}, [pdfViewerController, paintMode]);
+	}, [
+		pdfViewerController,
+		paintMode,
+		registerEditor,
+		unregisterEditor,
+		getEditor,
+		getEditorSnapshot,
+		setEditorSnapshot,
+		clearEditorSnapshot,
+		loadEditorSnapshot,
+		saveEditorSnapshot,
+		loadPageSnapshots,
+		savePageSnapshots,
+	]);
 
 	return {
 		pdfPainterController: pdfPainterController,
-		registerEditor: registerEditor,
-		unregisterEditor: unregisterEditor,
-		getEditor: getEditor,
-		getEditorSnapshot: getEditorSnapshot,
-		setEditorSnapshot: setEditorSnapshot,
-		clearEditorSnapshot: clearEditorSnapshot,
-		loadEditorSnapshot: loadEditorSnapshot,
-		saveEditorSnapshot: saveEditorSnapshot,
-		loadPageSnapshots: loadPageSnapshots,
-		savePageSnapshots: savePageSnapshots,
 		onPdfDocumentChange: onPdfDocumentChange,
 		onPdfPageChange: onPdfPageChange,
 		onPdfItemClick: onPdfItemClick,
