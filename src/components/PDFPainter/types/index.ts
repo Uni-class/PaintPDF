@@ -1,10 +1,14 @@
-import { Editor, TLEditorSnapshot } from "tldraw";
+import { Editor, TLEditorSnapshot, IdOf, TLRecord } from "tldraw";
 
 import { PDFDocument, PDFItemClickHandlerArguments, PDFPage, PDFViewerController } from "../../PDF/types";
 
 export type PaintMode = "default" | "move" | "draw";
 
 export type EditorSnapshot = TLEditorSnapshot;
+
+export type PainterShapeId = IdOf<TLRecord>;
+
+export type PainterShape = TLRecord;
 
 export type PDFPainterController = {
 	getPaintMode: () => PaintMode;
@@ -31,9 +35,13 @@ export type PDFPainterInstanceController = {
 	getEditorSnapshot: (pageIndex: number) => EditorSnapshot | null;
 	setEditorSnapshot: (pageIndex: number, snapshot: EditorSnapshot) => void;
 	clearEditorSnapshot: (pageIndex: number) => void;
+	getPaintElement: (elementId: PainterShapeId) => PainterShape | null;
+	setPaintElement: (elementId: PainterShapeId, elementData: PainterShape | null) => void;
 };
 
 export type PDFPainterInstanceControllerHook = {
 	pdfPainterInstanceController: PDFPainterInstanceController;
 	onEditorLoad: (editor: Editor) => void;
 };
+
+export type PDFPainterInstanceStoreUpdateHandler = (changes: { added?: any; updated?: any; removed?: any }) => void;

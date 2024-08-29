@@ -121,6 +121,7 @@ const PDFPainter = ({
 										instanceId={element.props.instanceId}
 										readOnly={element.props.readOnly || pdfPainterController.getPaintMode() !== "draw"}
 										pdfPainterControllerHook={pdfPainterControllerHook}
+										customPdfPainterInstanceControllerHook={element.props.customPdfPainterInstanceControllerHook}
 									/>
 								</div>
 							);

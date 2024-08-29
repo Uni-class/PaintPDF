@@ -1,18 +1,20 @@
 import { memo } from "react";
-import { PDFPainterInstanceController } from "@components/PDFPainter/types";
+import { PDFPainterInstanceControllerHook } from "@components/PDFPainter/types";
 
 const PainterInstanceGenerator = ({
 	instanceId,
 	readOnly = false,
+	customPdfPainterInstanceControllerHook,
 }: {
 	instanceId: string;
 	readOnly?: boolean;
-	onLoad?: (pdfPainterInstanceController: PDFPainterInstanceController) => void;
+	customPdfPainterInstanceControllerHook?: PDFPainterInstanceControllerHook;
 }) => {
 	return (
 		<div>
 			<div>{instanceId}</div>
 			<div>{readOnly}</div>
+			<div>{String(customPdfPainterInstanceControllerHook)}</div>
 		</div>
 	);
 };
