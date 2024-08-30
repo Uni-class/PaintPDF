@@ -1,20 +1,22 @@
 import { useMemo, memo } from "react";
-import { Editor, Tldraw, TLComponents, TLUiOverrides, TLUiActionsContextType, TLUiToolsContextType } from "tldraw";
+import { Editor, Tldraw, TLComponents, TLUiOverrides, TLUiActionsContextType, TLUiToolsContextType, TLAssetStore } from "tldraw";
 
 import "tldraw/tldraw.css";
 import "./Painter.css";
+import { TLAsset, TLAssetContext } from "@tldraw/tlschema";
+import { ExternalAssetStore } from "@components/Painter/types";
 
 const Painter = ({
 	width = "100%",
 	height = "100%",
 	readOnly = false,
-	enableKeyboardShortcuts = false,
+	externalAssetStore = null,
 	onEditorLoad = () => {},
 }: {
 	width?: number | string;
 	height?: number | string;
 	readOnly?: boolean;
-	enableKeyboardShortcuts?: boolean;
+	externalAssetStore?: ExternalAssetStore | null;
 	onEditorLoad?: (editor: Editor) => void;
 }) => {
 	const components = useMemo<TLComponents>(
@@ -26,10 +28,20 @@ const Painter = ({
 
 	const keyboardShortcutsEnabledOverrides: TLUiOverrides = {
 		actions(_editor, actions): TLUiActionsContextType {
-			return actions;
+			const shortcuts: { [key: string]: string } = {
+				undo: "$z",
+				redo: "$!z",
+				cut: "$x",
+				copy: "$c",
+				paste: "$v",
+				"select-all": "$a",
+				delete: "⌫,del,backspace",
+				duplicate: "$d",
+			};
+			return Object.fromEntries(Object.entries(actions).map(([key, value]) => [key, { ...value, kbd: key in shortcuts ? shortcuts[key] : "" }]));
 		},
 		tools(_editor, tools): TLUiToolsContextType {
-			return tools;
+			return Object.fromEntries(Object.entries(tools).map(([key, value]) => [key, { ...value, kbd: "" }]));
 		},
 	};
 
@@ -41,6 +53,21 @@ const Painter = ({
 			return Object.fromEntries(Object.entries(tools).map(([key, value]) => [key, { ...value, kbd: "" }]));
 		},
 	};
+
+	const assetStore: TLAssetStore | undefined = useMemo(() => {
+		if (externalAssetStore) {
+			return {
+				upload(asset: TLAsset, file: File) {
+					return externalAssetStore.upload(asset.id, asset.type, file);
+				},
+				resolve(asset: TLAsset, ctx: TLAssetContext) {
+					return externalAssetStore.resolve(asset.id, asset.type, asset.props.src || "");
+				},
+			};
+		} else {
+			return undefined;
+		}
+	}, [externalAssetStore]);
 
 	return (
 		<div
@@ -54,7 +81,8 @@ const Painter = ({
 				onMount={onEditorLoad}
 				hideUi={readOnly}
 				components={components}
-				overrides={enableKeyboardShortcuts ? keyboardShortcutsEnabledOverrides : keyboardShortcutsDisabledOverrides}
+				overrides={readOnly ? keyboardShortcutsDisabledOverrides : keyboardShortcutsEnabledOverrides}
+				assets={assetStore}
 			></Tldraw>
 		</div>
 	);

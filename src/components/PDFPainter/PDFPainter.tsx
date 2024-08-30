@@ -120,7 +120,6 @@ const PDFPainter = ({
 									<PainterInstance
 										instanceId={element.props.instanceId}
 										readOnly={element.props.readOnly || pdfPainterController.getPaintMode() !== "draw"}
-										enableKeyboardShortcuts={element.props.enableKeyboardShortcuts && pdfPainterController.getPaintMode() === "draw"}
 										pdfPainterControllerHook={pdfPainterControllerHook}
 										customPdfPainterInstanceControllerHook={element.props.customPdfPainterInstanceControllerHook}
 									/>

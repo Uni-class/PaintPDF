@@ -1,6 +1,7 @@
 import { Editor, TLEditorSnapshot, IdOf, TLRecord } from "tldraw";
 
 import { PDFDocument, PDFItemClickHandlerArguments, PDFPage, PDFViewerController } from "../../PDF/types";
+import { ExternalAssetStore } from "@components/Painter/types";
 
 export type PaintMode = "default" | "move" | "draw";
 
@@ -28,6 +29,7 @@ export type PDFPainterControllerHook = {
 	onPdfItemClick: ({ pageIndex, destination }: PDFItemClickHandlerArguments) => void;
 	onPdfMouseMoveEvent: (event: MouseEvent) => void;
 	onPdfWheelEvent: (event: WheelEvent) => void;
+	externalAssetStore: ExternalAssetStore | null;
 };
 
 export type PDFPainterInstanceController = {
@@ -36,7 +38,8 @@ export type PDFPainterInstanceController = {
 	setEditorSnapshot: (pageIndex: number, snapshot: EditorSnapshot) => void;
 	clearEditorSnapshot: (pageIndex: number) => void;
 	getPaintElement: (elementId: PainterShapeId) => PainterShape | null;
-	setPaintElement: (elementId: PainterShapeId, elementData: PainterShape | null) => void;
+	setPaintElement: (elementId: PainterShapeId, elementData?: PainterShape) => void;
+	updatePaintElementByGenerator: (elementId: PainterShapeId, elementGenerator: (previousElementData: PainterShape) => PainterShape) => void;
 };
 
 export type PDFPainterInstanceControllerHook = {

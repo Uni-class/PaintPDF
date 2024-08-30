@@ -2,11 +2,12 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Editor } from "tldraw";
 import usePDFViewerController from "../../PDF/hooks/usePDFViewerController.ts";
 
+import { ExternalAssetStore } from "@components/Painter/types";
 import { PaintMode, EditorSnapshot, PDFPainterController, PDFPainterControllerHook } from "../types";
 
 import CleanPainterSnapshot from "@assets/data/snapshot.json";
 
-const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPainterControllerHook => {
+const usePDFPainterController = ({ painterId, externalAssetStore = null }: { painterId: string; externalAssetStore?: ExternalAssetStore | null }): PDFPainterControllerHook => {
 	const { pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick, onPdfMouseMoveEvent, onPdfWheelEvent } = usePDFViewerController();
 
 	const [paintMode, setPaintMode] = useState<PaintMode>("default");
@@ -17,6 +18,9 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 
 	useEffect(() => {
 		pdfViewerController.setDragModeEnabled(paintMode === "move");
+		Object.values(editors.current).forEach((editor: Editor) => {
+			editor.selectNone();
+		});
 	}, [pdfViewerController, paintMode]);
 
 	const getEditor = useCallback((editorId: string): Editor | null => {
@@ -241,20 +245,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 			setEditorSnapshot: setEditorSnapshot,
 			clearEditorSnapshot: clearEditorSnapshot,
 		};
-	}, [
-		pdfViewerController,
-		paintMode,
-		registerEditor,
-		unregisterEditor,
-		getEditor,
-		getEditorSnapshot,
-		setEditorSnapshot,
-		clearEditorSnapshot,
-		loadEditorSnapshot,
-		saveEditorSnapshot,
-		loadPageSnapshots,
-		savePageSnapshots,
-	]);
+	}, [pdfViewerController, paintMode, registerEditor, unregisterEditor, getEditor, getEditorSnapshot, setEditorSnapshot, clearEditorSnapshot]);
 
 	return {
 		pdfPainterController: pdfPainterController,
@@ -263,6 +254,7 @@ const usePDFPainterController = ({ painterId }: { painterId: string }): PDFPaint
 		onPdfItemClick: onPdfItemClick,
 		onPdfMouseMoveEvent: onPdfMouseMoveEvent,
 		onPdfWheelEvent: onPdfWheelEvent,
+		externalAssetStore: externalAssetStore,
 	};
 };
 
