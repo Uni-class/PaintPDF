@@ -7,11 +7,13 @@ import usePDFPainterInstanceController from "@components/PDFPainter/hooks/usePDF
 const PainterInstance = ({
 	instanceId,
 	readOnly = false,
+	enableKeyboardShortcuts = false,
 	pdfPainterControllerHook,
 	customPdfPainterInstanceControllerHook,
 }: {
 	instanceId: string;
 	readOnly?: boolean;
+	enableKeyboardShortcuts?: boolean;
 	pdfPainterControllerHook: PDFPainterControllerHook;
 	customPdfPainterInstanceControllerHook?: PDFPainterInstanceControllerHook;
 }) => {
@@ -25,6 +27,7 @@ const PainterInstance = ({
 	return (
 		<Painter
 			readOnly={readOnly}
+			enableKeyboardShortcuts={enableKeyboardShortcuts}
 			onEditorLoad={(editor: Editor) => {
 				pdfPainterInstanceControllerHook.onEditorLoad(editor);
 			}}

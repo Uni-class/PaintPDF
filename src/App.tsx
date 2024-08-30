@@ -37,8 +37,18 @@ export default function App() {
 			}}
 		>
 			<PDFPainter customPdfPainterControllerHook={pdfPainterControllerHook} painterId={"Session123_File123"} pdfDocumentURL={TestDocument}>
-				<PainterInstanceGenerator instanceId={"Host"} readOnly={true} customPdfPainterInstanceControllerHook={pdfPainterHostInstanceControllerHook} />
-				<PainterInstanceGenerator instanceId={"Guest"} readOnly={false} customPdfPainterInstanceControllerHook={pdfPainterGuestInstanceControllerHook} />
+				<PainterInstanceGenerator
+					instanceId={"Host"}
+					readOnly={true}
+					enableKeyboardShortcuts={false}
+					customPdfPainterInstanceControllerHook={pdfPainterHostInstanceControllerHook}
+				/>
+				<PainterInstanceGenerator
+					instanceId={"Guest"}
+					readOnly={false}
+					enableKeyboardShortcuts={true}
+					customPdfPainterInstanceControllerHook={pdfPainterGuestInstanceControllerHook}
+				/>
 			</PDFPainter>
 		</div>
 	);
