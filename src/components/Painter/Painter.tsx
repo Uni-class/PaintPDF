@@ -22,7 +22,7 @@ import {
 
 import "tldraw/tldraw.css";
 import "./Painter.css";
-import { TLAsset, TLAssetContext } from "@tldraw/tlschema";
+import { TLAsset } from "@tldraw/tlschema";
 import { ExternalAssetStore, ExternalAssetURL } from "@components/Painter/types";
 
 const PainterComponent = ({
@@ -125,7 +125,7 @@ const PainterComponent = ({
 				upload(asset: TLAsset, file: File) {
 					return externalAssetStore.upload(asset.id, asset.type, file);
 				},
-				resolve(asset: TLAsset, ctx: TLAssetContext) {
+				resolve(asset: TLAsset) {
 					return externalAssetStore.resolve(asset.id, asset.type, (asset.props.src || "") as ExternalAssetURL);
 				},
 			};
