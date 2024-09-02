@@ -1,10 +1,29 @@
 import { useMemo, memo } from "react";
-import { Editor, Tldraw, TLComponents, TLUiOverrides, TLUiActionsContextType, TLUiToolsContextType, TLAssetStore } from "tldraw";
+import {
+	Editor,
+	Tldraw,
+	TLComponents,
+	TLUiOverrides,
+	TLUiActionsContextType,
+	TLUiToolsContextType,
+	TLAssetStore,
+	DefaultContextMenu,
+	TLUiContextMenuProps,
+	TldrawUiMenuGroup,
+	ClipboardMenuGroup,
+	SelectAllMenuItem,
+	DefaultStylePanel,
+	TLUiStylePanelProps,
+	DefaultStylePanelContent,
+	useRelevantStyles,
+	DefaultToolbar,
+	DefaultToolbarContent,
+} from "tldraw";
 
 import "tldraw/tldraw.css";
 import "./Painter.css";
 import { TLAsset, TLAssetContext } from "@tldraw/tlschema";
-import { ExternalAssetStore } from "@components/Painter/types";
+import { ExternalAssetStore, ExternalAssetURL } from "@components/Painter/types";
 
 const Painter = ({
 	width = "100%",
@@ -19,11 +38,57 @@ const Painter = ({
 	externalAssetStore?: ExternalAssetStore | null;
 	onEditorLoad?: (editor: Editor) => void;
 }) => {
+	const CustomContextMenu = memo((props: TLUiContextMenuProps) => {
+		return (
+			<DefaultContextMenu {...props}>
+				<ClipboardMenuGroup />
+				<TldrawUiMenuGroup id="select-all">
+					<SelectAllMenuItem />
+				</TldrawUiMenuGroup>
+			</DefaultContextMenu>
+		);
+	});
+
+	const CustomStylePanel = memo((props: TLUiStylePanelProps) => {
+		const styles = useRelevantStyles();
+		return (
+			<DefaultStylePanel {...props}>
+				<DefaultStylePanelContent styles={styles} />
+			</DefaultStylePanel>
+		);
+	});
+
+	const CustomToolbar = memo(() => {
+		return (
+			<DefaultToolbar>
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		);
+	});
+
 	const components = useMemo<TLComponents>(
 		() => ({
+			ContextMenu: CustomContextMenu,
+			ActionsMenu: null,
+			HelpMenu: null,
+			ZoomMenu: null,
+			MainMenu: null,
+			Minimap: null,
+			StylePanel: CustomStylePanel,
 			PageMenu: null,
+			NavigationPanel: null,
+			Toolbar: CustomToolbar,
+			KeyboardShortcutsDialog: null,
+			QuickActions: null,
+			HelperButtons: null,
+			DebugPanel: null,
+			DebugMenu: null,
+			SharePanel: null,
+			MenuPanel: null,
+			TopPanel: null,
+			CursorChatBubble: null,
 		}),
-		[],
+		[CustomContextMenu, CustomStylePanel, CustomToolbar],
 	);
 
 	const keyboardShortcutsEnabledOverrides: TLUiOverrides = {
@@ -61,7 +126,7 @@ const Painter = ({
 					return externalAssetStore.upload(asset.id, asset.type, file);
 				},
 				resolve(asset: TLAsset, ctx: TLAssetContext) {
-					return externalAssetStore.resolve(asset.id, asset.type, asset.props.src || "");
+					return externalAssetStore.resolve(asset.id, asset.type, (asset.props.src || "") as ExternalAssetURL);
 				},
 			};
 		} else {
