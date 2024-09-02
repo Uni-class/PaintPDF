@@ -5,9 +5,9 @@ import ToolHandIcon from "@assets/icons/tool-hand.svg";
 import ToolEditIcon from "@assets/icons/tool-edit.svg";
 import ArrowLeftIcon from "@assets/icons/arrow-left.svg";
 import ArrowRightIcon from "@assets/icons/arrow-right.svg";
-import PDFPainterControlBarButton from "./PDFPainterControlBarButton.tsx";
+import { PDFPainterControlBarButton } from "./PDFPainterControlBarButton.tsx";
 
-const PDFPainterControlBar = ({ pdfPainterController }: { pdfPainterController: PDFPainterController }) => {
+const PDFPainterControlBarComponent = ({ pdfPainterController }: { pdfPainterController: PDFPainterController }) => {
 	useEffect(() => {
 		pdfPainterController.setDragModeEnabled(pdfPainterController.getPaintMode() === "move");
 	}, [pdfPainterController]);
@@ -52,4 +52,4 @@ const PDFPainterControlBar = ({ pdfPainterController }: { pdfPainterController: 
 	);
 };
 
-export default memo(PDFPainterControlBar);
+export const PDFPainterControlBar = memo(PDFPainterControlBarComponent);

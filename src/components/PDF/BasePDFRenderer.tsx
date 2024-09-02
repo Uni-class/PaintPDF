@@ -7,7 +7,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const BasePDFRenderer = ({
+const BasePDFRendererComponent = ({
 	pdfDocumentURL,
 	pdfPageIndex,
 	pdfRenderWidth,
@@ -132,4 +132,4 @@ const BasePDFRenderer = ({
 	);
 };
 
-export default memo(BasePDFRenderer);
+export const BasePDFRenderer = memo(BasePDFRendererComponent);

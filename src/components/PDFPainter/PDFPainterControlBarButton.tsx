@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-const PDFPainterControlBarButton = ({ onClick, disabled, icon, alt }: { onClick?: () => void; disabled?: boolean; icon: string; alt: string }) => {
+const PDFPainterControlBarButtonComponent = ({ onClick, disabled, icon, alt }: { onClick?: () => void; disabled?: boolean; icon: string; alt: string }) => {
 	return (
 		<button
 			style={{
@@ -22,4 +22,4 @@ const PDFPainterControlBarButton = ({ onClick, disabled, icon, alt }: { onClick?
 	);
 };
 
-export default memo(PDFPainterControlBarButton);
+export const PDFPainterControlBarButton = memo(PDFPainterControlBarButtonComponent);

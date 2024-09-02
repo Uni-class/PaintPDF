@@ -1,13 +1,19 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Editor } from "tldraw";
-import usePDFViewerController from "../../PDF/hooks/usePDFViewerController.ts";
+import { usePDFViewerController } from "@components/PDF";
 
 import { ExternalAssetStore } from "@components/Painter/types";
 import { PaintMode, EditorSnapshot, PDFPainterController, PDFPainterControllerHook } from "../types";
 
 import CleanPainterSnapshot from "@assets/data/snapshot.json";
 
-const usePDFPainterController = ({ painterId, externalAssetStore = null }: { painterId: string; externalAssetStore?: ExternalAssetStore | null }): PDFPainterControllerHook => {
+export const usePDFPainterController = ({
+	painterId,
+	externalAssetStore = null,
+}: {
+	painterId: string;
+	externalAssetStore?: ExternalAssetStore | null;
+}): PDFPainterControllerHook => {
 	const { pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick, onPdfMouseMoveEvent, onPdfWheelEvent } = usePDFViewerController();
 
 	const [paintMode, setPaintMode] = useState<PaintMode>("default");
@@ -257,5 +263,3 @@ const usePDFPainterController = ({ painterId, externalAssetStore = null }: { pai
 		externalAssetStore: externalAssetStore,
 	};
 };
-
-export default usePDFPainterController;

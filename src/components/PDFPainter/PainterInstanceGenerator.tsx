@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { PDFPainterInstanceControllerHook } from "@components/PDFPainter/types";
 
-const PainterInstanceGenerator = ({
+const PainterInstanceGeneratorComponent = ({
 	instanceId,
 	readOnly = false,
 	customPdfPainterInstanceControllerHook,
@@ -19,4 +19,4 @@ const PainterInstanceGenerator = ({
 	);
 };
 
-export default memo(PainterInstanceGenerator);
+export const PainterInstanceGenerator = memo(PainterInstanceGeneratorComponent);

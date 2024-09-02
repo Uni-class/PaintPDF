@@ -1,10 +1,10 @@
 import { memo } from "react";
-import Painter from "@components/Painter/Painter.tsx";
+import { Painter } from "@components/Painter/Painter.tsx";
 import { Editor } from "tldraw";
 import { PDFPainterControllerHook, PDFPainterInstanceControllerHook } from "@components/PDFPainter/types";
-import usePDFPainterInstanceController from "@components/PDFPainter/hooks/usePDFPainterInstanceController.ts";
+import { usePDFPainterInstanceController } from "@components/PDFPainter/hooks/usePDFPainterInstanceController.ts";
 
-const PainterInstance = ({
+const PainterInstanceComponent = ({
 	instanceId,
 	readOnly = false,
 	pdfPainterControllerHook,
@@ -33,4 +33,4 @@ const PainterInstance = ({
 	);
 };
 
-export default memo(PainterInstance);
+export const PainterInstance = memo(PainterInstanceComponent);

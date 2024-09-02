@@ -11,7 +11,7 @@ import {
 } from "../types";
 import { Editor } from "tldraw";
 
-const usePDFPainterInstanceController = ({
+export const usePDFPainterInstanceController = ({
 	editorId,
 	pdfPainterController,
 	onStoreUpdate = () => {},
@@ -78,5 +78,3 @@ const usePDFPainterInstanceController = ({
 		onEditorLoad: onEditorLoad,
 	};
 };
-
-export default usePDFPainterInstanceController;

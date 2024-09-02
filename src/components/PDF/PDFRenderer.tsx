@@ -1,10 +1,10 @@
 import { memo } from "react";
-import BasePDFRenderer from "./BasePDFRenderer";
+import { BasePDFRenderer } from "./BasePDFRenderer";
 import type { PDFDocument, PDFPage, PDFItemClickHandlerArguments, PDFRenderOptions } from "./types";
 
 import "./PDFRenderer.css";
 
-const PDFRenderer = ({
+const PDFRendererComponent = ({
 	pdfDocumentURL,
 	pdfPageIndex = 0,
 	pdfRenderOptions = {
@@ -60,4 +60,4 @@ const PDFRenderer = ({
 	);
 };
 
-export default memo(PDFRenderer);
+export const PDFRenderer = memo(PDFRendererComponent);

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useCallback, memo, isValidElement, Children, ReactNode } from "react";
-import PDFViewer from "../PDF/PDFViewer.tsx";
-import usePDFPainterController from "./hooks/usePDFPainterController.ts";
-import PDFPainterControlBar from "./PDFPainterControlBar.tsx";
+import { PDFViewer } from "@components/PDF";
+import { usePDFPainterController } from "./hooks/usePDFPainterController.ts";
+import { PDFPainterControlBar } from "./PDFPainterControlBar.tsx";
 
 import { PDFRenderSize } from "../PDF/types";
 import { PDFPainterControllerHook } from "@components/PDFPainter/types";
-import PainterInstance from "@components/PDFPainter/PainterInstance.tsx";
+import { PainterInstance } from "@components/PDFPainter/PainterInstance.tsx";
 
-const PDFPainter = ({
+const PDFPainterComponent = ({
 	painterId,
 	pdfDocumentURL,
 	customPdfPainterControllerHook,
@@ -135,4 +135,4 @@ const PDFPainter = ({
 	);
 };
 
-export default memo(PDFPainter);
+export const PDFPainter = memo(PDFPainterComponent);

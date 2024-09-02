@@ -1,9 +1,9 @@
-import PDFPainter from "./components/PDFPainter/PDFPainter.tsx";
-import PainterInstanceGenerator from "@components/PDFPainter/PainterInstanceGenerator.tsx";
+import { PDFPainter } from "@components/PDFPainter";
+import { PainterInstanceGenerator } from "@components/PDFPainter/PainterInstanceGenerator.tsx";
 
 import TestDocument from "@assets/examples/test.pdf";
-import usePDFPainterController from "@components/PDFPainter/hooks/usePDFPainterController.ts";
-import usePDFPainterInstanceController from "@components/PDFPainter/hooks/usePDFPainterInstanceController.ts";
+import { usePDFPainterController } from "@components/PDFPainter/hooks/usePDFPainterController.ts";
+import { usePDFPainterInstanceController } from "@components/PDFPainter/hooks/usePDFPainterInstanceController.ts";
 import { ExternalAssetStore, ExternalAssetURL } from "@components/Painter/types";
 import { useMemo } from "react";
 

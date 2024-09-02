@@ -1,9 +1,9 @@
 import { memo, useEffect, useRef } from "react";
-import PDFRenderer from "./PDFRenderer";
-import usePDFViewerController from "./hooks/usePDFViewerController.ts";
+import { PDFRenderer } from "./PDFRenderer";
+import { usePDFViewerController } from "./hooks/usePDFViewerController.ts";
 import type { PDFViewerControllerHook } from "./types";
 
-const PDFViewer = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL: string; pdfViewerControllerHook?: PDFViewerControllerHook }) => {
+const PDFViewerComponent = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL: string; pdfViewerControllerHook?: PDFViewerControllerHook }) => {
 	const pdfRendererElement = useRef<HTMLDivElement | null>(null);
 	const defaultPdfViewerControllerHook = usePDFViewerController();
 	const { pdfViewerController, onPdfDocumentChange, onPdfPageChange, onPdfItemClick, onPdfMouseMoveEvent, onPdfWheelEvent } =
@@ -46,4 +46,4 @@ const PDFViewer = ({ pdfDocumentURL, pdfViewerControllerHook }: { pdfDocumentURL
 	);
 };
 
-export default memo(PDFViewer);
+export const PDFViewer = memo(PDFViewerComponent);

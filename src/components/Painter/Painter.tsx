@@ -25,7 +25,7 @@ import "./Painter.css";
 import { TLAsset, TLAssetContext } from "@tldraw/tlschema";
 import { ExternalAssetStore, ExternalAssetURL } from "@components/Painter/types";
 
-const Painter = ({
+const PainterComponent = ({
 	width = "100%",
 	height = "100%",
 	readOnly = false,
@@ -153,4 +153,4 @@ const Painter = ({
 	);
 };
 
-export default memo(Painter);
+export const Painter = memo(PainterComponent);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { PDFDocument, PDFPage, PDFRenderOptions, PDFRenderSize, PDFItemClickHandlerArguments, PDFViewerControllerHook } from "../types";
 
-const usePDFViewerController = (): PDFViewerControllerHook => {
+export const usePDFViewerController = (): PDFViewerControllerHook => {
 	const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null);
 	const [pdfPage, setPdfPage] = useState<PDFPage | null>(null);
 	const [pageIndex, setRawPageIndex] = useState<number>(0);
@@ -237,5 +237,3 @@ const usePDFViewerController = (): PDFViewerControllerHook => {
 		onPdfWheelEvent: wheelEventHandler,
 	};
 };
-
-export default usePDFViewerController;
