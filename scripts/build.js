@@ -1,7 +1,7 @@
 import ghPages from "gh-pages";
 
 const publisher = await ghPages.publish(
-	"src",
+	"dist",
 	{
 		branch: "dist",
 		tag: Date.now(),
