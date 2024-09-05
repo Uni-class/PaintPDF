@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "yarn build && cp package.json dist/package.json && node scripts/build.js"
+    "deploy": "node scripts/build.js"
   },
   "dependencies": {
     "react": "^18.3.1",
